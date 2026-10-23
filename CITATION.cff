@@ -6,6 +6,7 @@ authors:
   - family-names: "Çelik"
     given-names: "Mehmet Serdar"
     affiliation: "Ondokuz Mayıs University"
+    orcid: "https://orcid.org/0000-0003-2050-6378"
 version: "1.0.0"
 doi: "10.5281/zenodo.23590654"
 license: MIT
