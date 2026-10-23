@@ -60,11 +60,19 @@ if __name__ == "__main__":
         rows.append(dict(condition=c, joint=j, target=t, model=m, median_r2=med, ci_lo=lo, ci_hi=hi))
     pd.DataFrame(rows).to_csv(OUT / "stats_within_ci.csv", index=False)
     # 2) paired comparisons (each a family of 6 targets, Holm)
+    # the LSTM and torque models used a single seed: families B, C and E are seed-matched (TCN seed 0)
+    m = pd.concat([pd.read_csv(p) for p in sorted((R / "v2").glob("metrics_S*.csv"))])
+    v0 = m[(m.target != "tau") & ((m.model != "tcn") | (m.seed == 0))]
+    # dense ridge: 0-0.5 s of history at 50-ms spacing (check_lag.py, W = 200, D = 0)
+    cl = pd.read_csv(R / "extra" / "check_lag_ridge.csv")
+    cl = cl[(cl.h == 0) & (cl.variant == "W200")].assign(model="ridge05")
+    vg = pd.concat([v[v.model == "tcn"], cl[["subject", "condition", "joint", "target", "model", "r2"]]])
     fams = [paired(v, "tcn", "ridge25", "A", "TCN − Ridge"),
-            paired(v, "tcn", "lstm", "B", "TCN − LSTM"),
-            paired(v, "tcn", "tau_tcn", "C", "EMG-TCN − torque-TCN"),
+            paired(v0, "tcn", "lstm", "B", "TCN − LSTM"),
+            paired(v0, "tcn", "tau_tcn", "C", "EMG-TCN − torque-TCN"),
             paired(v, "emgtau_tcn", "tau_tcn", "D", "(EMG + torque) − torque"),
-            paired(v, "tcn_aux", "tcn", "E", "torque auxiliary output − none")]
+            paired(v0, "tcn_aux", "tcn", "E", "torque auxiliary output − none"),
+            paired(vg, "tcn", "ridge05", "G", "TCN − dense ridge (0.5 s, 50 ms)")]
     # 3) LOSO: effect of calibration (averaged over seeds, including additional seeds if present)
     l = pd.concat([pd.read_csv(p) for p in sorted((R / "v2_loso").glob("metrics_S*.csv"))])
     ex = sorted((R / "extra").glob("loso_seeds_S*.csv"))

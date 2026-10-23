@@ -9,7 +9,7 @@
 | MJ angular velocity units | Ratio to the numerical derivative of the angle 100.2–100.5 (r = 0.998); SJ ratio 1.0 | Multiplied by 100 (rad·sample⁻¹ at 100 Hz → rad·s⁻¹) |
 | MVC recordings | 0.00 % of power above 20 Hz in all 34 files (trial EMG: 63–96 %); consistent with a processed envelope | MVC normalisation not used; z-scoring with training statistics |
 | Wireless sensor dropouts | Runs of ≥ 20 identical raw samples in 1 491 of 3 230 trial–channel pairs (≈ 30 000 segments, mostly 10–20 ms, up to 7 s; 744 s in total); genuine EMG ≤ 2–3 identical consecutive samples | Online detection (≥ 20 identical samples), causal forward fill of features; median 17 % of samples per participant and condition (range 1–78 %) within an affected 200-ms window |
-| Zero-phase kinematic filtering | Preprint statement of bidirectional filtering; −290 dB/decade roll-off (two-pass simulation −293, one-pass −132); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
+| Zero-phase kinematic filtering | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
 | MJ elbow angle saturation | Plateau near 130° in some participants (≤ 4.7 % of samples) | Excluded in sensitivity analysis (median R² change ≤ 0.015) |
 
 **Table 2.** Decoding accuracy (R², median across 17 participants; 95 % bootstrap CI for the TCN and LOSO). Within-subject: rotating trial-level folds; LOSO: leave-one-subject-out, TCN averaged over three seeds. Last column: participants improved by calibration and Holm-corrected Wilcoxon p. RMSE in ° (angle) or °·s⁻¹ (velocity). W = 200 ms.
@@ -23,31 +23,19 @@
 | MJ elbow angle | 0.733 | 0.729 | **0.811 [0.748, 0.851]** | 7.7 | 0.456 [0.266, 0.560] | 0.526 [0.412, 0.627] | 12/17, 0.319 |
 | MJ elbow velocity | 0.663 | 0.682 | **0.761 [0.741, 0.826]** | 14.4 | 0.609 [0.567, 0.656] | 0.667 [0.551, 0.692] | 10/17, 1.000 |
 
-**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction q̇(t + 100 ms). Kinematics-only model: ridge on [q, q̇](t − d); EMG added by residual fusion. ΔR²: median paired difference (fused − kinematics) with 95 % bootstrap CI; p: Wilcoxon, Holm-corrected within each window (12 tests). ΔR² > 0: participants with a positive difference. Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (fixed before the analysis). Time-shifted EMG controls (5, 7, 9 s) at d = 150 ms, W = 200 ms: ΔR² between −0.0006 and −0.0001, 1–6/17 participants positive.
+**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction q̇(t + 100 ms). Kinematics-only model: ridge on [q, q̇](t − d). Residual fusion (pre-specified test): a linear EMG model added to the kinematic residuals (W = 200 ms). Late fusion: weighted combination of the kinematics-only and EMG-only TCN predictions, weight selected on the validation trial (W = 200 or 25 ms). ΔR²: median paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with ΔR² > 0 and Holm-corrected Wilcoxon p (family of 12 tests per method and window). RMSE in °·s⁻¹. Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (late fusion, W = 25 ms). Nominal delays d: the provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with a TCN trained on EMG shifted by 5 s, ΔR² −0.002 to −0.001.
 
-| W (ms) | Target | d (ms) | R² kinematics | ΔR² (EMG added) | ΔR² > 0 | p_Holm | RMSE (°·s⁻¹) | Meets criterion |
-|---|---|---|---|---|---|---|---|---|
-| 200 | SJ elbow | 0 | 0.992 | +0.0000 [+0.0000, +0.0001] | 14/17 | 0.001 | 3.5 → 3.5 | no |
-| 200 | SJ elbow | 50 | 0.965 | +0.0004 [+0.0001, +0.0006] | 15/17 | 4.6·10⁻⁴ | 7.4 → 7.3 | no |
-| 200 | SJ elbow | 100 | 0.898 | +0.0030 [+0.0009, +0.0045] | 17/17 | 1.8·10⁻⁴ | 12.4 → 12.3 | no |
-| 200 | SJ elbow | 150 | 0.791 | +0.0166 [+0.0097, +0.0212] | 17/17 | 1.8·10⁻⁴ | 17.6 → 17.4 | yes |
-| 200 | MJ shoulder | 0 | 0.993 | +0.0000 [+0.0000, +0.0000] | 15/17 | 0.004 | 2.6 → 2.6 | no |
-| 200 | MJ shoulder | 50 | 0.969 | +0.0003 [+0.0002, +0.0006] | 17/17 | 1.8·10⁻⁴ | 5.5 → 5.5 | no |
-| 200 | MJ shoulder | 100 | 0.911 | +0.0045 [+0.0027, +0.0069] | 17/17 | 1.8·10⁻⁴ | 9.4 → 9.1 | no |
-| 200 | MJ shoulder | 150 | 0.814 | +0.0208 [+0.0161, +0.0261] | 17/17 | 1.8·10⁻⁴ | 13.4 → 12.6 | yes |
-| 200 | MJ elbow | 0 | 0.991 | +0.0001 [+0.0000, +0.0001] | 17/17 | 1.8·10⁻⁴ | 2.9 → 2.9 | no |
-| 200 | MJ elbow | 50 | 0.959 | +0.0006 [+0.0005, +0.0007] | 17/17 | 1.8·10⁻⁴ | 6.3 → 6.3 | no |
-| 200 | MJ elbow | 100 | 0.882 | +0.0039 [+0.0025, +0.0050] | 17/17 | 1.8·10⁻⁴ | 10.7 → 10.5 | no |
-| 200 | MJ elbow | 150 | 0.748 | +0.0133 [+0.0112, +0.0183] | 17/17 | 1.8·10⁻⁴ | 15.5 → 15.1 | yes |
-| 50 | SJ elbow | 0 | 0.992 | +0.0001 [+0.0001, +0.0001] | 16/17 | 1.8·10⁻⁴ | 3.5 → 3.5 | no |
-| 50 | SJ elbow | 50 | 0.965 | +0.0008 [+0.0002, +0.0011] | 17/17 | 1.8·10⁻⁴ | 7.4 → 7.3 | no |
-| 50 | SJ elbow | 100 | 0.898 | +0.0061 [+0.0034, +0.0078] | 17/17 | 1.8·10⁻⁴ | 12.4 → 12.3 | no |
-| 50 | SJ elbow | 150 | 0.791 | +0.0348 [+0.0270, +0.0402] | 17/17 | 1.8·10⁻⁴ | 17.6 → 16.6 | yes |
-| 50 | MJ shoulder | 0 | 0.993 | +0.0000 [+0.0000, +0.0001] | 17/17 | 1.8·10⁻⁴ | 2.6 → 2.6 | no |
-| 50 | MJ shoulder | 50 | 0.969 | +0.0012 [+0.0006, +0.0016] | 17/17 | 1.8·10⁻⁴ | 5.5 → 5.5 | no |
-| 50 | MJ shoulder | 100 | 0.911 | +0.0087 [+0.0076, +0.0110] | 17/17 | 1.8·10⁻⁴ | 9.4 → 8.7 | no |
-| 50 | MJ shoulder | 150 | 0.814 | +0.0376 [+0.0346, +0.0447] | 17/17 | 1.8·10⁻⁴ | 13.4 → 11.7 | yes |
-| 50 | MJ elbow | 0 | 0.991 | +0.0001 [+0.0001, +0.0001] | 17/17 | 1.8·10⁻⁴ | 2.9 → 2.9 | no |
-| 50 | MJ elbow | 50 | 0.959 | +0.0008 [+0.0007, +0.0010] | 17/17 | 1.8·10⁻⁴ | 6.3 → 6.3 | no |
-| 50 | MJ elbow | 100 | 0.882 | +0.0053 [+0.0044, +0.0067] | 17/17 | 1.8·10⁻⁴ | 10.7 → 10.4 | no |
-| 50 | MJ elbow | 150 | 0.748 | +0.0295 [+0.0258, +0.0426] | 17/17 | 1.8·10⁻⁴ | 15.5 → 14.3 | yes |
+| Target | d (ms) | R² kinematics | ΔR² residual fusion, W = 200 | ΔR² late fusion, W = 200 | ΔR² late fusion, W = 25 | RMSE kinematics → late fusion (W = 25) | Meets criterion |
+|---|---|---|---|---|---|---|---|
+| SJ elbow | 0 | 0.992 | +0.000 [+0.000, +0.000] (14/17) | −0.000 [−0.000, −0.000] | +0.000 [−0.000, +0.000] (9/17, p_Holm 0.975) | 3.5 → 3.5 | no |
+| SJ elbow | 50 | 0.965 | +0.000 [+0.000, +0.001] (15/17) | +0.000 [+0.000, +0.001] | +0.001 [+0.000, +0.001] (14/17, p_Holm 0.028) | 7.4 → 7.3 | no |
+| SJ elbow | 100 | 0.898 | +0.003 [+0.001, +0.005] (17/17) | +0.007 [+0.004, +0.012] | +0.016 [+0.014, +0.021] (17/17, p_Holm 1.8·10⁻⁴) | 12.4 → 11.6 | yes |
+| SJ elbow | 150 | 0.791 | +0.017 [+0.010, +0.021] (17/17) | +0.048 [+0.029, +0.053] | +0.090 [+0.076, +0.095] (17/17, p_Holm 1.8·10⁻⁴) | 17.6 → 13.6 | yes |
+| MJ shoulder | 0 | 0.993 | +0.000 [+0.000, +0.000] (15/17) | −0.000 [−0.000, +0.000] | +0.000 [−0.000, +0.000] (11/17, p_Holm 0.975) | 2.6 → 2.6 | no |
+| MJ shoulder | 50 | 0.969 | +0.000 [+0.000, +0.001] (17/17) | +0.000 [−0.000, +0.001] | +0.001 [+0.000, +0.003] (14/17, p_Holm 0.006) | 5.5 → 5.4 | no |
+| MJ shoulder | 100 | 0.911 | +0.004 [+0.003, +0.007] (17/17) | +0.005 [+0.004, +0.013] | +0.016 [+0.011, +0.020] (17/17, p_Holm 1.8·10⁻⁴) | 9.4 → 8.7 | yes |
+| MJ shoulder | 150 | 0.814 | +0.021 [+0.016, +0.026] (17/17) | +0.037 [+0.028, +0.052] | +0.067 [+0.056, +0.073] (17/17, p_Holm 1.8·10⁻⁴) | 13.4 → 11.2 | yes |
+| MJ elbow | 0 | 0.991 | +0.000 [+0.000, +0.000] (17/17) | −0.000 [−0.000, −0.000] | −0.000 [−0.000, +0.000] (4/17, p_Holm 0.060) | 2.9 → 2.9 | no |
+| MJ elbow | 50 | 0.959 | +0.001 [+0.000, +0.001] (17/17) | +0.000 [−0.001, +0.001] | +0.001 [−0.001, +0.002] (11/17, p_Holm 0.674) | 6.3 → 6.3 | no |
+| MJ elbow | 100 | 0.882 | +0.004 [+0.002, +0.005] (17/17) | +0.004 [−0.000, +0.009] | +0.010 [+0.004, +0.017] (16/17, p_Holm 5.3·10⁻⁴) | 10.7 → 10.0 | no |
+| MJ elbow | 150 | 0.748 | +0.013 [+0.011, +0.018] (17/17) | +0.032 [+0.025, +0.040] | +0.056 [+0.049, +0.067] (17/17, p_Holm 1.8·10⁻⁴) | 15.5 → 13.2 | yes |

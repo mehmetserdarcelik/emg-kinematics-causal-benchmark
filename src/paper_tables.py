@@ -39,7 +39,7 @@ T1 = """**Table 1.** Issues identified in the audit of the open dataset and how 
 | MJ angular velocity units | Ratio to the numerical derivative of the angle 100.2–100.5 (r = 0.998); SJ ratio 1.0 | Multiplied by 100 (rad·sample⁻¹ at 100 Hz → rad·s⁻¹) |
 | MVC recordings | 0.00 % of power above 20 Hz in all 34 files (trial EMG: 63–96 %); consistent with a processed envelope | MVC normalisation not used; z-scoring with training statistics |
 | Wireless sensor dropouts | Runs of ≥ 20 identical raw samples in 1 491 of 3 230 trial–channel pairs (≈ 30 000 segments, mostly 10–20 ms, up to 7 s; 744 s in total); genuine EMG ≤ 2–3 identical consecutive samples | Online detection (≥ 20 identical samples), causal forward fill of features; median 17 % of samples per participant and condition (range 1–78 %) within an affected 200-ms window |
-| Zero-phase kinematic filtering | Preprint statement of bidirectional filtering; −290 dB/decade roll-off (two-pass simulation −293, one-pass −132); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
+| Zero-phase kinematic filtering | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
 | MJ elbow angle saturation | Plateau near 130° in some participants (≤ 4.7 % of samples) | Excluded in sensitivity analysis (median R² change ≤ 0.015) |
 """
 
@@ -71,37 +71,51 @@ def table2():
 
 
 def table3():
-    sw = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "k_checks_sweep" / "S*.csv"))])
     idx = ["condition", "joint", "subject", "delay_ms"]
-    kin = sw[sw.kind == "kin"].set_index(idx)
+    sw = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "k_checks_sweep" / "S*.csv"))])
+    kin = sw[sw.kind == "kin"].set_index(idx).r2
+    res = sw[(sw.kind == "fused") & (sw.W == 200)].set_index(idx).r2
+    lf = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "latefusion" / "S*.csv"))])
+    lp = lf.pivot_table(index=idx, columns="arm", values="r2")
+    lr = lf.pivot_table(index=idx, columns="arm", values="rmse_degs")
+    lt = pd.read_csv(R / "latefusion" / "tests.csv")
+    lt = lt[(lt.comparison == "late_vs_kin") & (lt.W == "w25")].set_index(["condition", "joint", "delay_ms"])
+    recs = []
+    for c, j, lab in J3:
+        for d in (0, 50, 100, 150):
+            k = kin.loc[(c, j)].xs(d, level="delay_ms")
+            rd = (res.loc[(c, j)].xs(d, level="delay_ms") - k).dropna()
+            x = lp.loc[(c, j)].xs(d, level="delay_ms")
+            l200, l25 = (x["late_w200"] - x["kin"]).dropna(), (x["late_w25"] - x["kin"]).dropna()
+            rm = lr.loc[(c, j)].xs(d, level="delay_ms")
+            recs.append(dict(lab=lab, d=d, kin=np.median(k), rd=rd, l200=l200, l25=l25,
+                             p_rd=wilcoxon(rd).pvalue if np.any(rd != 0) else 1.0,
+                             rmse=f"{rm['kin'].median():.1f} → {rm['late_w25'].median():.1f}",
+                             t=lt.loc[(c, j, d)]))
+    ph = holm(np.array([r["p_rd"] for r in recs]))
+
+    def ci(x):
+        _, lo, hi = boot_ci(np.asarray(x))
+        return f"{np.median(x):+.3f} [{lo:+.3f}, {hi:+.3f}]".replace("-", "−")
     out = []
-    for W in (200, 50):
-        fu = sw[(sw.kind == "fused") & (sw.W == W)].set_index(idx)
-        sh = sw[(sw.kind == "shift5") & (sw.W == W)].set_index(idx) if W == 200 else None
-        recs = []
-        for c, j, lab in J3:
-            for d in (0, 50, 100, 150):
-                k = kin.loc[(c, j)].xs(d, level="delay_ms")
-                f = fu.loc[(c, j)].xs(d, level="delay_ms")
-                diff = (f.r2 - k.r2).dropna()
-                p = wilcoxon(diff).pvalue if np.any(diff != 0) else 1.0
-                rmse = f"{k.rmse_degs.median():.1f} → {f.rmse_degs.median():.1f}"
-                recs.append(dict(lab=lab, d=d, kin=np.median(k.r2), diff=diff, p=p, rmse=rmse))
-        ph = holm(np.array([r["p"] for r in recs]))
-        for r, q in zip(recs, ph):
-            dm = np.median(r["diff"])
-            pos = "yes" if (dm >= 0.01 and q < 0.05) else "no"
-            _, lo, hi = boot_ci(r["diff"].values)
-            out.append(f"| {W} | {r['lab']} | {r['d']} | {r['kin']:.3f} | {dm:+.4f} [{lo:+.4f}, {hi:+.4f}] | "
-                       f"{int((r['diff'] > 0).sum())}/17 | {fp(q)} | {r['rmse']} | {pos} |")
-    head = ("**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction "
-            "q̇(t + 100 ms). Kinematics-only model: ridge on [q, q̇](t − d); EMG added by residual fusion. "
-            "ΔR²: median paired difference (fused − kinematics) with 95 % bootstrap CI; p: Wilcoxon, Holm-corrected "
-            "within each window (12 tests). ΔR² > 0: participants with a positive difference. Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (fixed before the analysis). "
-            "Time-shifted EMG controls (5, 7, 9 s) at d = 150 ms, W = 200 ms: ΔR² between −0.0006 and −0.0001, "
-            "1–6/17 participants positive.\n\n"
-            "| W (ms) | Target | d (ms) | R² kinematics | ΔR² (EMG added) | ΔR² > 0 | p_Holm | RMSE (°·s⁻¹) | "
-            "Meets criterion |\n|---|---|---|---|---|---|---|---|---|\n")
+    for r, q in zip(recs, ph):
+        t = r["t"]
+        out.append(f"| {r['lab']} | {r['d']} | {r['kin']:.3f} | {ci(r['rd'])} ({int((r['rd'] > 0).sum())}/17) | "
+                   f"{ci(r['l200'])} | {ci(r['l25'])} ({int(t.wins)}/17, p_Holm {fp(t.p_holm)}) | {r['rmse']} | "
+                   f"{'yes' if t.pos else 'no'} |")
+    head = ("**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction q̇(t + 100 ms). "
+            "Kinematics-only model: ridge on [q, q̇](t − d). Residual fusion (pre-specified test): a linear EMG model "
+            "added to the kinematic residuals (W = 200 ms). Late fusion: weighted combination of the kinematics-only "
+            "and EMG-only TCN predictions, weight selected on the validation trial (W = 200 or 25 ms). ΔR²: median "
+            "paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with "
+            "ΔR² > 0 and Holm-corrected Wilcoxon p (family of 12 tests per method and window). RMSE in °·s⁻¹. "
+            "Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (late fusion, W = 25 ms). Nominal delays d: the "
+            "provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion "
+            "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with a TCN trained on EMG shifted "
+            "by 5 s, ΔR² −0.002 to −0.001.\n\n"
+            "| Target | d (ms) | R² kinematics | ΔR² residual fusion, W = 200 | ΔR² late fusion, W = 200 | "
+            "ΔR² late fusion, W = 25 | RMSE kinematics → late fusion (W = 25) | Meets criterion |\n"
+            "|---|---|---|---|---|---|---|---|\n")
     return head + "\n".join(out) + "\n"
 
 

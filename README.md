@@ -4,7 +4,7 @@
 
 Code and derived results for the paper
 
-> M. S. Çelik, *When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset*, submitted to Biomedical Signal Processing and Control (2026).
+> M. S. Çelik, *When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset*, submitted to Computers in Biology and Medicine (2026).
 
 The study decodes elbow and shoulder joint angle and angular velocity from raw surface EMG with a strictly causal pipeline, using the open dataset of Quesada et al. (17 participants, random single- and multi-joint movements against a viscous exoskeleton field; https://doi.org/10.5281/zenodo.11209324). It asks how well EMG decodes the kinematics, whether EMG carries information beyond the joint torque, and when EMG adds value over measured kinematics with a delay.
 
@@ -13,7 +13,7 @@ The study decodes elbow and shoulder joint angle and angular velocity from raw s
 | Path | Content |
 |---|---|
 | `src/` | Data loading, causal EMG features, models (ridge, LSTM, causal TCN), all analyses, statistics, tables and figures |
-| `tests/test_causality.py` | Future-replacement test of the causal feature extraction for all window lengths |
+| `tests/test_causality.py` | Future-replacement tests of the causal feature extraction (all window lengths) and of the TCN |
 | `results/` | Per-participant results of every analysis and the derived summary tables |
 | `paper/` | Generated tables (`tables.md`), figures (`figures/`) and supplementary tables (`supplementary.md`) |
 | `reproduce.py` | Runs the pipeline (summary stage by default, `--all` for everything) |
@@ -36,7 +36,7 @@ This recomputes all summary tables and statistics from the per-participant files
 python reproduce.py --all
 ```
 
-This runs the complete pipeline in the order listed in `reproduce.py`. The model training takes several days on a single consumer GPU (the paper used an NVIDIA RTX 2070 SUPER). Per-participant outputs that already exist are skipped, so the pipeline can be interrupted and resumed. Delete the corresponding files in `results/` to recompute them. For long unattended runs, GPU load and temperature can be limited with the environment variables `GPU_DUTY` (e.g. `0.5`), `GPU_TEMP_HIGH` and `GPU_TEMP_LOW` (see `src/deep.py`). Only `results/v2/preds_S14.npz` (used for Fig. 1) is included among the prediction files. `src/analysis_cpu.py` needs the prediction files of all participants, which `src/run_v2.py` regenerates.
+This runs the complete pipeline in the order listed in `reproduce.py`. The model training takes several days on a single consumer GPU (the paper used an NVIDIA RTX 2070 SUPER). Per-participant outputs that already exist are skipped, so the pipeline can be interrupted and resumed. Delete the corresponding files in `results/` to recompute them. For long unattended runs, GPU load and temperature can be limited with the environment variables `GPU_DUTY` (e.g. `0.5`), `GPU_TEMP_HIGH` and `GPU_TEMP_LOW` (see `src/deep.py`). Only `results/v2/preds_S14.npz` (used for Fig. 1) is included among the within-subject prediction files; `src/analysis_cpu.py` needs those of all participants, which `src/run_v2.py` regenerates (it reruns a participant if the prediction file is missing). The EMG-only TCN predictions used for late fusion are included in `results/latefusion/`.
 
 | Script | Paper section | Output |
 |---|---|---|
@@ -46,7 +46,9 @@ This runs the complete pipeline in the order listed in `reproduce.py`. The model
 | `run_horizon.py`, `analysis_cpu.py` | 2.7, 3.4, 3.6 | `results/horizon/`, `results/extra/cpu_*` |
 | `k_checks.py` (`K_SWEEP=1` for all windows) | 2.7–2.8, 3.5 | `results/k_checks/`, `results/k_checks_sweep/` |
 | `run_extra.py hbase2/hbase3/hbase4/k3b` | 2.7, 3.5 (early fusion) | `results/extra/` |
-| `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py` | 2.8, 3.5 | `results/extra/` |
+| `run_latefusion.py` (GPU), `latefusion.py` | 2.7, 3.5 (late fusion) | `results/latefusion/` |
+| `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py`, `window_dropout_check.py` | 2.8, 3.5 | `results/extra/`, `results/latefusion/` |
+| `filter_evidence.py`, `timing.py` | 2.2, 3.6, Supplementary S2 | `results/extra/` |
 | `aggregate.py`, `stats.py`, `k_analysis.py`, `k2_breakeven.py`, `tost.py` | 2.9 | summary tables in `results/` |
 | `paper_tables.py`, `paper_figures.py`, `supplement.py` | Tables 1–3, Figs. 1–6, Supplementary | `paper/` |
 

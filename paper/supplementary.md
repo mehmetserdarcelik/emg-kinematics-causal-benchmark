@@ -45,22 +45,22 @@ All checks used the files of Zenodo record 11209324 (MD5 of the archive `ea2dd9d
 
 # S2. Evidence that the provided kinematics are zero-phase filtered
 
-The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four independent indications support zero-phase (forward–backward) filtering.
+The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four independent indications support zero-phase (forward–backward) filtering. All values below are computed by `src/filter_evidence.py`.
 
 1. **Statement in the first preprint.** The first bioRxiv version of the source study (posted 12 January 2024, Section II.D.2) states that "all filters were bidirectionally applied" [QuesadaBioRxiv2024v1]. The sentence appears in the EMG subsection; later versions restrict the statement to EMG and do not specify the direction for the kinematics.
-2. **Spectral roll-off.** Marker noise is approximately white at high frequency, so after filtering the spectrum follows |H|² for a single pass and |H|⁴ for a forward–backward pass. The slope of the median power spectral density (Welch, DPSS window, NW = 8) of the second difference of the elbow angle between 20 and 40 Hz was compared with simulations of white noise filtered by the stated filter (Table S2.1).
-3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor; its spectrum is broadband (slope −28 to −44 dB/decade), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the provided velocity *led* the torque by a median of 65 ms (range across participants 40–90 ms; 17/17 participants). Applying an additional causal 3-Hz pass to the velocity shifted this lag by ≈ +150 ms (e.g. S02 trial 0: −80 → +70 ms), confirming the sensitivity of the test.
-4. **Practice of the same laboratory.** Other studies from the same group with the same exoskeleton explicitly filter position data with zero-phase Butterworth filters [Verdel2023].
+2. **Spectral roll-off.** Marker noise is approximately white at high frequency, so after filtering the spectrum follows |H|² for a single pass and |H|⁴ for a forward–backward pass. The slope of the median power spectral density (Welch, 512-sample DPSS window, NW = 8) of the differenced SJ elbow angle (170 trials) was compared with 200 simulated white-noise signals filtered once or forward–backward with the stated filter (Table S2.1).
+3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor. Its spectrum is broadband (slope −45 to −10 dB/decade between 10 and 40 Hz across participants, compared with −293 dB/decade for the twice-differenced angle), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the peak of the cross-correlation between the provided velocity and the torque (±300 ms) showed the velocity *leading* the torque by a median of 65 ms (participant medians 40–90 ms; 17/17 participants). After an additional causal 3-Hz pass, the velocity lagged the torque by a median of 80 ms, confirming the sensitivity of the test.
+4. **Practice of the same laboratory.** Another study from the same group with the same exoskeleton explicitly filters position data with a zero-phase Butterworth filter [Verdel2023].
 
-**Table S2.1.** Spectral slope of the angle signal (dB/decade).
+**Table S2.1.** Spectral slope (dB/decade) of the differenced angle signal.
 
 | Signal | 2nd difference, 20–40 Hz | 1st difference, 8–20 Hz |
 |---|---|---|
-| Simulation, single pass (lfilter) | −132 | −72 |
-| Simulation, forward–backward (filtfilt) | −293 | −163 |
-| **Provided elbow angle** | **−290** | **−192** |
+| Simulation, single pass (lfilter) | −133 | −72 |
+| Simulation, forward–backward (filtfilt) | −294 | −163 |
+| **Provided SJ elbow angle** | **−293** | **−198** |
 
-**Future information in the provided kinematics.** For a forward–backward 4th-order 3-Hz Butterworth filter, the impulse response extends into the future. Its energy beyond +50, +100, +150 and +200 ms is 16.4, 3.1, 1.2 and 1.0 % (absolute weight: 27.2, 13.8, 9.0 and 7.7 %); 95 % of the absolute weight lies within ±320 ms. Kinematic inputs delayed by a nominal d therefore still contain some information from after t − d, particularly for d ≤ 50 ms.
+**Future information in the provided kinematics.** For a forward–backward 4th-order 3-Hz Butterworth filter, the impulse response extends into the future. Its energy beyond +50, +100, +150 and +200 ms is 16.4, 3.1, 1.1 and 1.0 % (absolute weight: 27.2, 13.8, 9.0 and 7.7 %); 95 % of the absolute weight lies within ±350 ms. Kinematic inputs delayed by a nominal d therefore still contain some information from after t − d, particularly for d ≤ 50 ms.
 
 Because raw kinematics are not available, the filtering cannot be undone, and re-filtering the provided signals causally would not remove the future information they already contain. The nominal delays are interpreted with this limitation (Sections 2.7 and 4.7).
 
@@ -78,7 +78,7 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | K1 timing diagnostic | Cross-correlation of a causal 25-ms EMG envelope with q̇ and torque | Three-way rule on EMG-to-kinematics lead L | **Cancelled before running**: the filter direction was established independently (S2) | Delays reported as nominal |
 | K4 specificity and overfitting | Ridge residual fusion; EMG circularly shifted by 5, 7 and 9 s | Shifted EMG gains as much as aligned EMG (difference < 0.01) or ΔR² ≥ 0.03 → withdraw the delay finding. Aligned EMG beats kinematics and all shifted controls at d = 150 → "time-specific information". Residual fusion at d = 0/50 ≤ 0 or inconclusive → "no EMG contribution detected at ≤ 50 ms" | Shifted controls ΔR² −0.0006 to −0.0001; aligned EMG beat all controls in 17/17 participants for all targets; d = 0/50: ΔR² ≤ +0.0006 (significant, but CIs within ±0.01) | Contribution depends on temporal alignment; negligible at d ≤ 50 ms (worded in the manuscript as "statistically detectable but negligible") |
 | K3 window ablation | Ridge: W = 50/100/200 ms, d = 0–160 ms; TCN: W = 50/100 ms, d = 0/50/100/150 | b ≥ 0.6 and TCN (W = 50, d = 50) positive in ≥ 2/3 targets → "mainly window latency"; b ≤ 0.25 and no positive TCN result → "insensitive to window"; otherwise "partly window-dependent" | b = 0.28–0.34 (95 % CI 0.15–0.43); TCN W = 50, d = 50 positive in 2/3 targets | "Partly window-dependent" |
-| K2 break-even | Crossing of median EMG-only and kinematics-only curves | d* reported only within the tested range and with CI | See Table S5.4 | Reported within 0–160 ms with CIs |
+| K2 break-even | Crossing of median EMG-only and kinematics-only curves | d* reported only within the tested range and with CI | See Table S5.6 | Reported within 0–160 ms with CIs |
 
 **Validation gates of K3.** (i) The ridge analysis at W = 200 ms had to reproduce the TCN pattern (ΔR² > 0 at d = 150 ms; ΔR² ≤ 0 at d = 0). At d = 150 ms the gate was met (+0.013 to +0.021). Before the analysis was run, the condition at d = 0 was operationalised in the analysis script as "not significantly positive" (median ΔR² < 0.01 or p_Holm ≥ 0.05), because residual fusion can select a zero gain and is therefore expected to yield ≈ 0 rather than negative values. The median ΔR² at d = 0 was +0.00002 to +0.00006, so the gate was met under this definition. (ii) EMG-only R² at W = 50 ms had to be no more than 0.05 below that at W = 200 ms; it was higher (Table S5.2).
 
@@ -88,97 +88,104 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 3. *Delays 50 and 100 ms* (TCN early fusion) were added after inspecting the d = 0 and 150 ms results.
 4. *Window sweep.* The full TCN sweep (W = 25–250 ms) and the ridge sweep with W = 25, 75, 150 and 250 ms were added after the control analyses, as were the diagnostic analyses in S5.
 5. *Equivalence test.* The TOST for EMG + torque versus torque (S4) was added after review.
+6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with a TCN trained on time-shifted EMG as the negative control; the same predictions were used to compare windows on dropout-free samples (Table S5.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added at this stage.
 
 
 # S4. Additional metrics, statistics and robustness
 
-**Table S4.1.** Within-subject decoding (W = 200 ms, Δ = 0): medians across 17 participants of R², Pearson r, RMSE, range-normalised RMSE and bias. TCN models: three seeds (TCN) or one seed (others). Torque → ridge was an additional reference not discussed in the main text.
+**Table S4.1.** Within-subject decoding (W = 200 ms, Δ = 0): medians across 17 participants of R² (with 95 % participant-level bootstrap CI), Pearson r, RMSE, range-normalised RMSE and bias. TCN models: three seeds (TCN) or one seed (others). Torque → ridge was an additional reference not discussed in the main text.
 
-| Target               | Model               |    R² |     r |   RMSE (°, °/s) |   nRMSE (%) |   Bias (°, °/s) |
-|:---------------------|:--------------------|------:|------:|----------------:|------------:|----------------:|
-| SJ elbow angle       | Ridge (2.5 s)       | 0.877 | 0.938 |           7.345 |       7.682 |          -0.021 |
-| SJ elbow angle       | LSTM                | 0.91  | 0.955 |           6.116 |       6.768 |           0.222 |
-| SJ elbow angle       | TCN                 | 0.93  | 0.964 |           5.428 |       6.082 |           0.128 |
-| SJ elbow angle       | TCN + torque output | 0.928 | 0.963 |           5.423 |       6.066 |           0.128 |
-| SJ elbow angle       | Torque → ridge      | 0.825 | 0.909 |           8.33  |       9.316 |           0.051 |
-| SJ elbow angle       | Torque → TCN        | 0.903 | 0.951 |           6.204 |       6.784 |           0.083 |
-| SJ elbow angle       | EMG + torque → TCN  | 0.941 | 0.97  |           4.885 |       5.387 |           0.05  |
-| SJ elbow velocity    | Ridge (2.5 s)       | 0.872 | 0.934 |          15.308 |       5.958 |           0.027 |
-| SJ elbow velocity    | LSTM                | 0.899 | 0.948 |          12.69  |       4.689 |           0.165 |
-| SJ elbow velocity    | TCN                 | 0.93  | 0.965 |          11.141 |       4.077 |           0.102 |
-| SJ elbow velocity    | TCN + torque output | 0.933 | 0.966 |          11.1   |       4.014 |          -0.097 |
-| SJ elbow velocity    | Torque → ridge      | 0.948 | 0.974 |           9.452 |       3.491 |           0.042 |
-| SJ elbow velocity    | Torque → TCN        | 0.97  | 0.985 |           7.474 |       2.559 |          -0.057 |
-| SJ elbow velocity    | EMG + torque → TCN  | 0.971 | 0.985 |           7.615 |       2.578 |           0.041 |
-| MJ shoulder angle    | Ridge (2.5 s)       | 0.893 | 0.945 |           6.669 |       7.446 |           0.112 |
-| MJ shoulder angle    | LSTM                | 0.872 | 0.935 |           7.288 |       7.791 |          -0.051 |
-| MJ shoulder angle    | TCN                 | 0.92  | 0.96  |           5.648 |       6.219 |           0.214 |
-| MJ shoulder angle    | TCN + torque output | 0.921 | 0.96  |           5.501 |       6.138 |           0.262 |
-| MJ shoulder angle    | Torque → ridge      | 0.845 | 0.919 |           8.493 |       8.309 |          -0.06  |
-| MJ shoulder angle    | Torque → TCN        | 0.899 | 0.948 |           6.221 |       6.682 |          -0.07  |
-| MJ shoulder angle    | EMG + torque → TCN  | 0.935 | 0.968 |           5.14  |       5.588 |           0.03  |
-| MJ shoulder velocity | Ridge (2.5 s)       | 0.772 | 0.879 |          14.717 |       7.772 |           0.121 |
-| MJ shoulder velocity | LSTM                | 0.717 | 0.849 |          17.165 |       8.306 |           0.066 |
-| MJ shoulder velocity | TCN                 | 0.85  | 0.922 |          12.239 |       6.106 |          -0.115 |
-| MJ shoulder velocity | TCN + torque output | 0.847 | 0.92  |          12.08  |       6.043 |           0.042 |
-| MJ shoulder velocity | Torque → ridge      | 0.824 | 0.908 |          12.857 |       6.689 |          -0.016 |
-| MJ shoulder velocity | Torque → TCN        | 0.88  | 0.939 |          10.566 |       5.744 |          -0.167 |
-| MJ shoulder velocity | EMG + torque → TCN  | 0.906 | 0.952 |           9.52  |       5.035 |          -0.245 |
-| MJ elbow angle       | Ridge (2.5 s)       | 0.733 | 0.862 |           9.809 |      10.471 |          -0.151 |
-| MJ elbow angle       | LSTM                | 0.729 | 0.857 |           9.093 |       9.734 |           0.341 |
-| MJ elbow angle       | TCN                 | 0.811 | 0.901 |           7.688 |       8.478 |           0.406 |
-| MJ elbow angle       | TCN + torque output | 0.81  | 0.902 |           7.803 |       8.354 |           0.407 |
-| MJ elbow angle       | Torque → ridge      | 0.454 | 0.674 |          12.843 |      14.281 |          -0.005 |
-| MJ elbow angle       | Torque → TCN        | 0.585 | 0.771 |          11.432 |      12.187 |           0.263 |
-| MJ elbow angle       | EMG + torque → TCN  | 0.834 | 0.914 |           7.107 |       7.573 |           0.363 |
-| MJ elbow velocity    | Ridge (2.5 s)       | 0.663 | 0.814 |          17.349 |       7.56  |          -0.161 |
-| MJ elbow velocity    | LSTM                | 0.682 | 0.829 |          16.617 |       7.506 |           0.403 |
-| MJ elbow velocity    | TCN                 | 0.761 | 0.873 |          14.421 |       6.268 |          -0.067 |
-| MJ elbow velocity    | TCN + torque output | 0.767 | 0.876 |          14.269 |       6.235 |           0.038 |
-| MJ elbow velocity    | Torque → ridge      | 0.633 | 0.796 |          18.108 |       8.403 |          -0.002 |
-| MJ elbow velocity    | Torque → TCN        | 0.73  | 0.855 |          14.794 |       6.727 |          -0.229 |
-| MJ elbow velocity    | EMG + torque → TCN  | 0.81  | 0.9   |          13.348 |       5.904 |          -0.118 |
+| Target               | Model               |    R² | R² 95 % CI     |     r |   RMSE (°, °/s) |   nRMSE (%) |   Bias (°, °/s) |
+|:---------------------|:--------------------|------:|:---------------|------:|----------------:|------------:|----------------:|
+| SJ elbow angle       | Ridge (2.5 s)       | 0.877 | [0.859, 0.896] | 0.938 |           7.345 |       7.682 |          -0.021 |
+| SJ elbow angle       | LSTM                | 0.91  | [0.897, 0.921] | 0.955 |           6.116 |       6.768 |           0.222 |
+| SJ elbow angle       | TCN                 | 0.93  | [0.917, 0.937] | 0.964 |           5.428 |       6.082 |           0.128 |
+| SJ elbow angle       | TCN + torque output | 0.928 | [0.915, 0.939] | 0.963 |           5.423 |       6.066 |           0.128 |
+| SJ elbow angle       | Torque → ridge      | 0.825 | [0.806, 0.840] | 0.909 |           8.33  |       9.316 |           0.051 |
+| SJ elbow angle       | Torque → TCN        | 0.903 | [0.896, 0.925] | 0.951 |           6.204 |       6.784 |           0.083 |
+| SJ elbow angle       | EMG + torque → TCN  | 0.941 | [0.929, 0.949] | 0.97  |           4.885 |       5.387 |           0.05  |
+| SJ elbow velocity    | Ridge (2.5 s)       | 0.872 | [0.846, 0.893] | 0.934 |          15.308 |       5.958 |           0.027 |
+| SJ elbow velocity    | LSTM                | 0.899 | [0.893, 0.924] | 0.948 |          12.69  |       4.689 |           0.165 |
+| SJ elbow velocity    | TCN                 | 0.93  | [0.915, 0.941] | 0.965 |          11.141 |       4.077 |           0.102 |
+| SJ elbow velocity    | TCN + torque output | 0.933 | [0.912, 0.942] | 0.966 |          11.1   |       4.014 |          -0.097 |
+| SJ elbow velocity    | Torque → ridge      | 0.948 | [0.905, 0.963] | 0.974 |           9.452 |       3.491 |           0.042 |
+| SJ elbow velocity    | Torque → TCN        | 0.97  | [0.956, 0.976] | 0.985 |           7.474 |       2.559 |          -0.057 |
+| SJ elbow velocity    | EMG + torque → TCN  | 0.971 | [0.961, 0.976] | 0.985 |           7.615 |       2.578 |           0.041 |
+| MJ shoulder angle    | Ridge (2.5 s)       | 0.893 | [0.869, 0.910] | 0.945 |           6.669 |       7.446 |           0.112 |
+| MJ shoulder angle    | LSTM                | 0.872 | [0.863, 0.893] | 0.935 |           7.288 |       7.791 |          -0.051 |
+| MJ shoulder angle    | TCN                 | 0.92  | [0.908, 0.942] | 0.96  |           5.648 |       6.219 |           0.214 |
+| MJ shoulder angle    | TCN + torque output | 0.921 | [0.909, 0.941] | 0.96  |           5.501 |       6.138 |           0.262 |
+| MJ shoulder angle    | Torque → ridge      | 0.845 | [0.832, 0.864] | 0.919 |           8.493 |       8.309 |          -0.06  |
+| MJ shoulder angle    | Torque → TCN        | 0.899 | [0.885, 0.924] | 0.948 |           6.221 |       6.682 |          -0.07  |
+| MJ shoulder angle    | EMG + torque → TCN  | 0.935 | [0.927, 0.955] | 0.968 |           5.14  |       5.588 |           0.03  |
+| MJ shoulder velocity | Ridge (2.5 s)       | 0.772 | [0.739, 0.796] | 0.879 |          14.717 |       7.772 |           0.121 |
+| MJ shoulder velocity | LSTM                | 0.717 | [0.679, 0.759] | 0.849 |          17.165 |       8.306 |           0.066 |
+| MJ shoulder velocity | TCN                 | 0.85  | [0.813, 0.857] | 0.922 |          12.239 |       6.106 |          -0.115 |
+| MJ shoulder velocity | TCN + torque output | 0.847 | [0.823, 0.860] | 0.92  |          12.08  |       6.043 |           0.042 |
+| MJ shoulder velocity | Torque → ridge      | 0.824 | [0.796, 0.848] | 0.908 |          12.857 |       6.689 |          -0.016 |
+| MJ shoulder velocity | Torque → TCN        | 0.88  | [0.856, 0.895] | 0.939 |          10.566 |       5.744 |          -0.167 |
+| MJ shoulder velocity | EMG + torque → TCN  | 0.906 | [0.873, 0.914] | 0.952 |           9.52  |       5.035 |          -0.245 |
+| MJ elbow angle       | Ridge (2.5 s)       | 0.733 | [0.646, 0.794] | 0.862 |           9.809 |      10.471 |          -0.151 |
+| MJ elbow angle       | LSTM                | 0.729 | [0.649, 0.814] | 0.857 |           9.093 |       9.734 |           0.341 |
+| MJ elbow angle       | TCN                 | 0.811 | [0.748, 0.851] | 0.901 |           7.688 |       8.478 |           0.406 |
+| MJ elbow angle       | TCN + torque output | 0.81  | [0.746, 0.858] | 0.902 |           7.803 |       8.354 |           0.407 |
+| MJ elbow angle       | Torque → ridge      | 0.454 | [0.424, 0.515] | 0.674 |          12.843 |      14.281 |          -0.005 |
+| MJ elbow angle       | Torque → TCN        | 0.585 | [0.509, 0.619] | 0.771 |          11.432 |      12.187 |           0.263 |
+| MJ elbow angle       | EMG + torque → TCN  | 0.834 | [0.784, 0.873] | 0.914 |           7.107 |       7.573 |           0.363 |
+| MJ elbow velocity    | Ridge (2.5 s)       | 0.663 | [0.621, 0.718] | 0.814 |          17.349 |       7.56  |          -0.161 |
+| MJ elbow velocity    | LSTM                | 0.682 | [0.613, 0.716] | 0.829 |          16.617 |       7.506 |           0.403 |
+| MJ elbow velocity    | TCN                 | 0.761 | [0.741, 0.826] | 0.873 |          14.421 |       6.268 |          -0.067 |
+| MJ elbow velocity    | TCN + torque output | 0.767 | [0.742, 0.829] | 0.876 |          14.269 |       6.235 |           0.038 |
+| MJ elbow velocity    | Torque → ridge      | 0.633 | [0.555, 0.673] | 0.796 |          18.108 |       8.403 |          -0.002 |
+| MJ elbow velocity    | Torque → TCN        | 0.73  | [0.713, 0.807] | 0.855 |          14.794 |       6.727 |          -0.229 |
+| MJ elbow velocity    | EMG + torque → TCN  | 0.81  | [0.781, 0.851] | 0.9   |          13.348 |       5.904 |          -0.118 |
 
-**Table S4.2.** All paired comparisons (Wilcoxon signed-rank, Holm correction within each comparison family of six targets; 95 % bootstrap CI of the median paired difference).
+**Table S4.2.** All paired comparisons (Wilcoxon signed-rank, Holm correction within each comparison family of six targets; 95 % bootstrap CI of the median paired difference). Comparisons with single-seed models (LSTM, torque-input models, auxiliary torque output) use the seed-0 TCN; the others use the three-seed TCN average.
 
-| Comparison                            | Target               |   Positive (n/17) |   Median ΔR² |   CI low |   CI high |   p_Holm |
-|:--------------------------------------|:---------------------|------------------:|-------------:|---------:|----------:|---------:|
-| TCN − ridge                           | SJ elbow angle       |                17 |        0.047 |    0.031 |     0.059 |  9.2e-05 |
-| TCN − ridge                           | SJ elbow velocity    |                17 |        0.058 |    0.042 |     0.069 |  9.2e-05 |
-| TCN − ridge                           | MJ shoulder angle    |                17 |        0.033 |    0.021 |     0.039 |  9.2e-05 |
-| TCN − ridge                           | MJ shoulder velocity |                17 |        0.073 |    0.065 |     0.08  |  9.2e-05 |
-| TCN − ridge                           | MJ elbow angle       |                17 |        0.098 |    0.073 |     0.109 |  9.2e-05 |
-| TCN − ridge                           | MJ elbow velocity    |                17 |        0.098 |    0.09  |     0.123 |  9.2e-05 |
-| TCN − LSTM                            | SJ elbow angle       |                16 |        0.016 |    0.009 |     0.024 |  0.0021  |
-| TCN − LSTM                            | SJ elbow velocity    |                17 |        0.021 |    0.015 |     0.025 |  9.2e-05 |
-| TCN − LSTM                            | MJ shoulder angle    |                17 |        0.044 |    0.04  |     0.049 |  9.2e-05 |
-| TCN − LSTM                            | MJ shoulder velocity |                17 |        0.135 |    0.102 |     0.162 |  9.2e-05 |
-| TCN − LSTM                            | MJ elbow angle       |                17 |        0.078 |    0.055 |     0.1   |  9.2e-05 |
-| TCN − LSTM                            | MJ elbow velocity    |                17 |        0.089 |    0.078 |     0.113 |  9.2e-05 |
-| EMG→TCN − torque→TCN                  | SJ elbow angle       |                14 |        0.021 |    0.003 |     0.033 |  0.0077  |
-| EMG→TCN − torque→TCN                  | SJ elbow velocity    |                 1 |       -0.036 |   -0.046 |    -0.025 |  0.0054  |
-| EMG→TCN − torque→TCN                  | MJ shoulder angle    |                13 |        0.022 |    0.001 |     0.032 |  0.0077  |
-| EMG→TCN − torque→TCN                  | MJ shoulder velocity |                 0 |       -0.027 |   -0.038 |    -0.019 |  9.2e-05 |
-| EMG→TCN − torque→TCN                  | MJ elbow angle       |                17 |        0.221 |    0.204 |     0.288 |  9.2e-05 |
-| EMG→TCN − torque→TCN                  | MJ elbow velocity    |                13 |        0.02  |    0.012 |     0.049 |  0.0093  |
-| (EMG + torque) − torque               | SJ elbow angle       |                17 |        0.038 |    0.019 |     0.044 |  9.2e-05 |
-| (EMG + torque) − torque               | SJ elbow velocity    |                10 |        0.001 |   -0.001 |     0.006 |  0.22    |
-| (EMG + torque) − torque               | MJ shoulder angle    |                17 |        0.035 |    0.025 |     0.038 |  9.2e-05 |
-| (EMG + torque) − torque               | MJ shoulder velocity |                16 |        0.026 |    0.016 |     0.038 |  9.2e-05 |
-| (EMG + torque) − torque               | MJ elbow angle       |                17 |        0.241 |    0.225 |     0.307 |  9.2e-05 |
-| (EMG + torque) − torque               | MJ elbow velocity    |                17 |        0.058 |    0.037 |     0.083 |  9.2e-05 |
-| TCN + torque output − TCN             | SJ elbow angle       |                10 |        0     |   -0.001 |     0.002 |  1       |
-| TCN + torque output − TCN             | SJ elbow velocity    |                14 |        0.001 |    0     |     0.002 |  0.25    |
-| TCN + torque output − TCN             | MJ shoulder angle    |                 9 |        0     |   -0.002 |     0.002 |  1       |
-| TCN + torque output − TCN             | MJ shoulder velocity |                11 |        0.002 |   -0.002 |     0.005 |  0.39    |
-| TCN + torque output − TCN             | MJ elbow angle       |                10 |        0.001 |   -0.005 |     0.005 |  1       |
-| TCN + torque output − TCN             | MJ elbow velocity    |                14 |        0.005 |    0.002 |     0.007 |  0.005   |
-| LOSO: 30-s calibration − uncalibrated | SJ elbow angle       |                16 |        0.054 |    0.025 |     0.125 |  0.00046 |
-| LOSO: 30-s calibration − uncalibrated | SJ elbow velocity    |                16 |        0.032 |    0.008 |     0.075 |  0.00046 |
-| LOSO: 30-s calibration − uncalibrated | MJ shoulder angle    |                12 |        0.053 |   -0.007 |     0.158 |  0.32    |
-| LOSO: 30-s calibration − uncalibrated | MJ shoulder velocity |                12 |        0.013 |   -0.004 |     0.039 |  0.32    |
-| LOSO: 30-s calibration − uncalibrated | MJ elbow angle       |                12 |        0.058 |   -0.029 |     0.225 |  0.32    |
-| LOSO: 30-s calibration − uncalibrated | MJ elbow velocity    |                10 |        0.022 |   -0.041 |     0.058 |  1       |
+| Comparison                               | Target               |   Positive (n/17) |   Median ΔR² |   CI low |   CI high |   p_Holm |
+|:-----------------------------------------|:---------------------|------------------:|-------------:|---------:|----------:|---------:|
+| TCN − ridge (2.5 s)                      | SJ elbow angle       |                17 |        0.047 |    0.031 |     0.059 |  9.2e-05 |
+| TCN − ridge (2.5 s)                      | SJ elbow velocity    |                17 |        0.058 |    0.042 |     0.069 |  9.2e-05 |
+| TCN − ridge (2.5 s)                      | MJ shoulder angle    |                17 |        0.033 |    0.021 |     0.039 |  9.2e-05 |
+| TCN − ridge (2.5 s)                      | MJ shoulder velocity |                17 |        0.073 |    0.065 |     0.08  |  9.2e-05 |
+| TCN − ridge (2.5 s)                      | MJ elbow angle       |                17 |        0.098 |    0.073 |     0.109 |  9.2e-05 |
+| TCN − ridge (2.5 s)                      | MJ elbow velocity    |                17 |        0.098 |    0.09  |     0.123 |  9.2e-05 |
+| TCN − LSTM                               | SJ elbow angle       |                16 |        0.013 |    0.009 |     0.025 |  0.0026  |
+| TCN − LSTM                               | SJ elbow velocity    |                17 |        0.021 |    0.013 |     0.025 |  9.2e-05 |
+| TCN − LSTM                               | MJ shoulder angle    |                17 |        0.046 |    0.039 |     0.053 |  9.2e-05 |
+| TCN − LSTM                               | MJ shoulder velocity |                17 |        0.128 |    0.102 |     0.164 |  9.2e-05 |
+| TCN − LSTM                               | MJ elbow angle       |                17 |        0.079 |    0.05  |     0.095 |  9.2e-05 |
+| TCN − LSTM                               | MJ elbow velocity    |                17 |        0.09  |    0.085 |     0.119 |  9.2e-05 |
+| EMG→TCN − torque→TCN                     | SJ elbow angle       |                13 |        0.022 |    0.003 |     0.034 |  0.0063  |
+| EMG→TCN − torque→TCN                     | SJ elbow velocity    |                 1 |       -0.036 |   -0.044 |    -0.026 |  0.0043  |
+| EMG→TCN − torque→TCN                     | MJ shoulder angle    |                14 |        0.022 |    0.001 |     0.033 |  0.0043  |
+| EMG→TCN − torque→TCN                     | MJ shoulder velocity |                 0 |       -0.024 |   -0.037 |    -0.018 |  9.2e-05 |
+| EMG→TCN − torque→TCN                     | MJ elbow angle       |                17 |        0.22  |    0.206 |     0.284 |  9.2e-05 |
+| EMG→TCN − torque→TCN                     | MJ elbow velocity    |                13 |        0.024 |    0.012 |     0.05  |  0.017   |
+| (EMG + torque) − torque                  | SJ elbow angle       |                17 |        0.038 |    0.019 |     0.044 |  9.2e-05 |
+| (EMG + torque) − torque                  | SJ elbow velocity    |                10 |        0.001 |   -0.001 |     0.006 |  0.22    |
+| (EMG + torque) − torque                  | MJ shoulder angle    |                17 |        0.035 |    0.025 |     0.038 |  9.2e-05 |
+| (EMG + torque) − torque                  | MJ shoulder velocity |                16 |        0.026 |    0.016 |     0.038 |  9.2e-05 |
+| (EMG + torque) − torque                  | MJ elbow angle       |                17 |        0.241 |    0.225 |     0.307 |  9.2e-05 |
+| (EMG + torque) − torque                  | MJ elbow velocity    |                17 |        0.058 |    0.037 |     0.083 |  9.2e-05 |
+| TCN + torque output − TCN                | SJ elbow angle       |                 6 |       -0.001 |   -0.002 |     0.001 |  0.99    |
+| TCN + torque output − TCN                | SJ elbow velocity    |                14 |        0.001 |    0.001 |     0.002 |  0.0025  |
+| TCN + torque output − TCN                | MJ shoulder angle    |                 8 |       -0     |   -0.003 |     0.005 |  1       |
+| TCN + torque output − TCN                | MJ shoulder velocity |                13 |        0.001 |    0     |     0.003 |  0.35    |
+| TCN + torque output − TCN                | MJ elbow angle       |                 9 |        0.001 |   -0.005 |     0.004 |  1       |
+| TCN + torque output − TCN                | MJ elbow velocity    |                16 |        0.005 |    0.002 |     0.009 |  0.00027 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | SJ elbow angle       |                17 |        0.062 |    0.049 |     0.079 |  9.2e-05 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | SJ elbow velocity    |                17 |        0.031 |    0.023 |     0.041 |  9.2e-05 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | MJ shoulder angle    |                17 |        0.035 |    0.032 |     0.045 |  9.2e-05 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | MJ shoulder velocity |                17 |        0.047 |    0.039 |     0.063 |  9.2e-05 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | MJ elbow angle       |                17 |        0.077 |    0.056 |     0.101 |  9.2e-05 |
+| TCN − dense ridge (0.5 s, 50-ms spacing) | MJ elbow velocity    |                17 |        0.051 |    0.039 |     0.084 |  9.2e-05 |
+| LOSO: 30-s calibration − uncalibrated    | SJ elbow angle       |                16 |        0.054 |    0.025 |     0.125 |  0.00046 |
+| LOSO: 30-s calibration − uncalibrated    | SJ elbow velocity    |                16 |        0.032 |    0.008 |     0.075 |  0.00046 |
+| LOSO: 30-s calibration − uncalibrated    | MJ shoulder angle    |                12 |        0.053 |   -0.007 |     0.158 |  0.32    |
+| LOSO: 30-s calibration − uncalibrated    | MJ shoulder velocity |                12 |        0.013 |   -0.004 |     0.039 |  0.32    |
+| LOSO: 30-s calibration − uncalibrated    | MJ elbow angle       |                12 |        0.058 |   -0.029 |     0.225 |  0.32    |
+| LOSO: 30-s calibration − uncalibrated    | MJ elbow velocity    |                10 |        0.022 |   -0.041 |     0.058 |  1       |
 
 **Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05.
 
@@ -371,10 +378,27 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | MJ elbow    | EMG-TCN          | 250 |         0.612 | > 160     | > 160    | > 160     |                0.999 |
 | MJ elbow    | EMG-ridge        | 250 |         0.587 | > 160     | > 160    | > 160     |                1     |
 
+**Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain, evaluated on all samples and on samples without a dropout in any channel during the preceding 200 ms.
+
+| Target               | Samples      |   R² W=25 |   R² W=200 |   Median gain |   Gain > 0 (n/17) |
+|:---------------------|:-------------|----------:|-----------:|--------------:|------------------:|
+| MJ elbow angle       | all samples  |     0.816 |      0.803 |         0.022 |                16 |
+| MJ elbow velocity    | all samples  |     0.73  |      0.64  |         0.076 |                17 |
+| MJ shoulder angle    | all samples  |     0.932 |      0.919 |         0.009 |                17 |
+| MJ shoulder velocity | all samples  |     0.834 |      0.763 |         0.066 |                17 |
+| SJ elbow angle       | all samples  |     0.941 |      0.926 |         0.016 |                17 |
+| SJ elbow velocity    | all samples  |     0.879 |      0.811 |         0.062 |                17 |
+| MJ elbow angle       | dropout-free |     0.815 |      0.802 |         0.021 |                16 |
+| MJ elbow velocity    | dropout-free |     0.721 |      0.649 |         0.075 |                17 |
+| MJ shoulder angle    | dropout-free |     0.929 |      0.92  |         0.011 |                17 |
+| MJ shoulder velocity | dropout-free |     0.838 |      0.775 |         0.055 |                17 |
+| SJ elbow angle       | dropout-free |     0.942 |      0.925 |         0.015 |                17 |
+| SJ elbow velocity    | dropout-free |     0.884 |      0.819 |         0.06  |                17 |
+
 
 # S6. Prediction horizon and delayed kinematic feedback
 
-**Table S6.1.** Median R² as a function of the prediction horizon Δ (ms) for the EMG-only TCN, the torque-only TCN and persistence (ŷ(t + Δ) = y(t)). W = 200 ms.
+**Table S6.1.** Median R² as a function of the prediction horizon Δ (ms) for the EMG-only TCN, the torque-only TCN and persistence (ŷ(t + Δ) = y(t)). W = 200 ms; TCNs trained with a single seed (seed 0), so values at Δ = 0 differ slightly from the three-seed values in Table 2.
 
 | Target               | Model        | Δ=0   |   Δ=50 |   Δ=100 |   Δ=200 |   Δ=300 |
 |:---------------------|:-------------|:------|-------:|--------:|--------:|--------:|
@@ -560,3 +584,41 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | 200 |      150 | SJ elbow    |       0.1602 |                17 |  0.00018 | True              |
 | 200 |      150 | MJ shoulder |       0.1605 |                17 |  0.00018 | True              |
 | 200 |      150 | MJ elbow    |       0.1604 |                17 |  0.00018 | True              |
+
+**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model, median paired gain for W = 25, 50 and 200 ms and for the time-shifted-EMG control (W = 200 ms), and median EMG weight selected on the validation trials (W = 25 ms).
+
+| Target      |   d (ms) |   Kinematics R² |   ΔR² W=25 |   ΔR² W=50 |   ΔR² W=200 |   ΔR² shifted EMG |   EMG weight (W=25) |
+|:------------|---------:|----------------:|-----------:|-----------:|------------:|------------------:|--------------------:|
+| SJ elbow    |        0 |          0.9921 |     0      |     0      |     -0      |            0      |                0.04 |
+| SJ elbow    |       20 |          0.9847 |     0      |     0.0001 |     -0      |            0      |                0.06 |
+| SJ elbow    |       40 |          0.9728 |     0.0004 |     0.0002 |      0      |            0      |                0.1  |
+| SJ elbow    |       50 |          0.9646 |     0.001  |     0.0007 |      0.0003 |            0      |                0.12 |
+| SJ elbow    |       60 |          0.9547 |     0.0017 |     0.0014 |      0.0005 |            0      |                0.16 |
+| SJ elbow    |       80 |          0.9296 |     0.0057 |     0.0047 |      0.0015 |            0      |                0.26 |
+| SJ elbow    |      100 |          0.8977 |     0.0158 |     0.0136 |      0.0071 |            0      |                0.41 |
+| SJ elbow    |      120 |          0.8589 |     0.0372 |     0.0318 |      0.0169 |           -0.0002 |                0.57 |
+| SJ elbow    |      140 |          0.8145 |     0.0689 |     0.0602 |      0.0356 |           -0.0007 |                0.74 |
+| SJ elbow    |      150 |          0.7906 |     0.0905 |     0.0756 |      0.0483 |           -0.0007 |                0.81 |
+| SJ elbow    |      160 |          0.766  |     0.1105 |     0.1024 |      0.0635 |           -0.001  |                0.87 |
+| MJ shoulder |        0 |          0.9933 |     0      |     0      |     -0.0001 |            0      |                0.02 |
+| MJ shoulder |       20 |          0.987  |     0.0001 |     0.0001 |      0      |            0      |                0.04 |
+| MJ shoulder |       40 |          0.9766 |     0.0007 |     0.0005 |      0.0002 |            0      |                0.08 |
+| MJ shoulder |       50 |          0.9695 |     0.0011 |     0.001  |      0.0001 |            0      |                0.11 |
+| MJ shoulder |       60 |          0.961  |     0.0031 |     0.0028 |      0.0006 |            0      |                0.13 |
+| MJ shoulder |       80 |          0.9393 |     0.0077 |     0.0067 |      0.0019 |            0      |                0.21 |
+| MJ shoulder |      100 |          0.911  |     0.0165 |     0.0144 |      0.0053 |           -0.0001 |                0.29 |
+| MJ shoulder |      120 |          0.8762 |     0.0318 |     0.0283 |      0.0129 |           -0.0008 |                0.4  |
+| MJ shoulder |      140 |          0.8356 |     0.0537 |     0.05   |      0.0274 |           -0.0008 |                0.51 |
+| MJ shoulder |      150 |          0.8141 |     0.0673 |     0.0639 |      0.0367 |           -0.0008 |                0.57 |
+| MJ shoulder |      160 |          0.7923 |     0.0827 |     0.0801 |      0.0477 |           -0.0008 |                0.61 |
+| MJ elbow    |        0 |          0.991  |    -0.0001 |    -0.0001 |     -0.0001 |            0      |                0.03 |
+| MJ elbow    |       20 |          0.9824 |     0      |    -0      |     -0.0002 |            0      |                0.05 |
+| MJ elbow    |       40 |          0.9686 |     0.0003 |     0      |     -0.0002 |            0      |                0.07 |
+| MJ elbow    |       50 |          0.9592 |     0.001  |     0.0007 |      0.0001 |           -0      |                0.1  |
+| MJ elbow    |       60 |          0.9478 |     0.0015 |     0.0007 |      0.0002 |           -0.0002 |                0.12 |
+| MJ elbow    |       80 |          0.9203 |     0.0036 |     0.0037 |      0.0023 |           -0.0005 |                0.16 |
+| MJ elbow    |      100 |          0.8825 |     0.0097 |     0.0083 |      0.0043 |           -0.0005 |                0.23 |
+| MJ elbow    |      120 |          0.8384 |     0.0208 |     0.0173 |      0.0114 |           -0.0018 |                0.31 |
+| MJ elbow    |      140 |          0.7783 |     0.0426 |     0.0352 |      0.0233 |           -0.0019 |                0.4  |
+| MJ elbow    |      150 |          0.7481 |     0.0563 |     0.0476 |      0.0317 |           -0.0017 |                0.46 |
+| MJ elbow    |      160 |          0.7171 |     0.073  |     0.0666 |      0.0426 |           -0.0017 |                0.51 |

@@ -1,0 +1,16 @@
+measure,data,sim_one_pass,sim_two_pass
+slope_diff2_20_40_dB_per_decade,-293.2698769021345,-133.220373567982,-293.7805097487347
+slope_diff1_8_20_dB_per_decade,-198.3923939247469,-71.82688588313033,-163.03233613638199
+velocity_minus_torque_lag_ms_median,-65.0,,
+velocity_minus_torque_lag_ms_range,-90 to -40,,
+lag_after_extra_causal_pass_ms_median,80.0,,
+torque_slope_10_40_dB_per_decade_range,-45 to -10,,
+energy_after_50ms,16.41744319165232,,
+energy_after_100ms,3.1121736360037735,,
+energy_after_150ms,1.1494921659478736,,
+energy_after_200ms,0.9785630849334374,,
+weight_after_50ms,27.24241845349244,,
+weight_after_100ms,13.789466524278188,,
+weight_after_150ms,9.026010762644882,,
+weight_after_200ms,7.681544193867321,,
+weight95_halfwidth_ms,350.0,,

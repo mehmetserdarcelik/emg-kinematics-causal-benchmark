@@ -1,0 +1,3 @@
+measure,median,q25,q75,reps,cpu,torch,threads
+tcn_forward_ms,5.876700000953861,5.85010000213515,5.909399998927256,1000,AMD Ryzen 9 3950X 16-Core Processor,2.5.1+cu121,1
+features_ms_per_10ms_block_amortised,0.04364554421589345,0.042895739796618156,0.04392352891175376,20,AMD Ryzen 9 3950X 16-Core Processor,2.5.1+cu121,1

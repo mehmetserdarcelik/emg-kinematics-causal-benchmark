@@ -142,7 +142,7 @@ def run_subject(args):
     subject, model_names = args
     os.environ.setdefault("OMP_NUM_THREADS", "4")
     out_csv = OUT / f"metrics_{subject}.csv"
-    if out_csv.exists():
+    if out_csv.exists() and (OUT / f"preds_{subject}.npz").exists():
         return subject, "skipped"
     t0 = time.time()
     F = features(subject)

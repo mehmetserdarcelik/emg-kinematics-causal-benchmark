@@ -1,0 +1,72 @@
+"""Is the short-window advantage explained by sensor dropouts? (Section 2.8)
+
+The EMG-only TCN test predictions saved for late fusion (q, qd (t + 100 ms); W = 25, 50, 200 ms) are evaluated on all
+samples and on dropout-free samples only (no dropout in any channel during the 200 ms before the input time, which
+also covers the longest window). Output: results/latefusion/window_dropout.csv and window_dropout_tests.csv
+"""
+import sys
+from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from scipy.stats import wilcoxon
+
+sys.path.insert(0, str(Path(__file__).parent))
+from data import JOINTS, MUSCLES, ROOT, SJ_MUSCLES, SUBJECTS  # noqa: E402
+
+OUT = ROOT / "results" / "latefusion"
+K = 10
+ARMS = ["w25", "w50", "w200"]
+
+
+def run_subject(subject):
+    from data import load_subject
+    from emgfeat import DECIM, _rsum, dropout_mask
+    from run_v2 import FOLDS, features, targets
+    P = np.load(OUT / f"preds_{subject}.npz")
+    F = features(subject)
+    d = load_subject(subject)
+    rows = []
+    w = int(0.2 * 2000)
+    for cond in ("SJ", "MJ"):
+        J = JOINTS[cond]
+        cols = [MUSCLES.index(m) for m in (SJ_MUSCLES if cond == "SJ" else MUSCLES)]
+        clean = {}
+        for t in d["trials"][cond]:
+            m = dropout_mask(t.emg_raw[:, cols])
+            b = (_rsum(m.astype(float), w) > 0).any(axis=1)[::DECIM][:len(t.q)]
+            b = np.r_[b, np.repeat(b[-1], max(0, len(t.q) - len(b)))]
+            clean[t.index] = ~b[:len(t.q) - K]
+        fold_of = {i: f for f, (test, _) in enumerate(FOLDS) for i in test}
+        Y = np.vstack([targets(F, cond, i, ["q", "qd"])[K:] for i in range(10)])
+        C = np.concatenate([clean[i] for i in range(10)])
+        for arm in ARMS:
+            Yh = np.vstack([P[f"{cond}|{arm}|f{fold_of[i]}|t{i}"] for i in range(10)])
+            for ti, tg in enumerate(["q", "qd"]):
+                for j, joint in enumerate(J):
+                    c = ti * len(J) + j
+                    for subset, keep in (("all", np.ones(len(C), bool)), ("dropout_free", C)):
+                        y, yh = Y[keep, c], Yh[keep, c]
+                        rows.append(dict(subject=subject, condition=cond, joint=joint, target=tg, arm=arm,
+                                         subset=subset, frac=keep.mean(),
+                                         r2=1 - np.sum((yh - y) ** 2) / np.sum((y - y.mean()) ** 2)))
+    return rows
+
+
+if __name__ == "__main__":
+    with ProcessPoolExecutor(max_workers=3) as ex:
+        df = pd.DataFrame([r for rs in ex.map(run_subject, SUBJECTS) for r in rs])
+    df.to_csv(OUT / "window_dropout.csv", index=False)
+    piv = df.pivot_table(index=["subset", "condition", "joint", "target", "subject"], columns="arm", values="r2")
+    rows = []
+    for (sub, c, j, t), s in piv.groupby(level=[0, 1, 2, 3]):
+        g = (s["w25"] - s["w200"]).dropna()
+        rows.append(dict(subset=sub, condition=c, joint=j, target=t, r2_w25=s["w25"].median(),
+                         r2_w200=s["w200"].median(), gain=g.median(), wins=int((g > 0).sum()),
+                         p=wilcoxon(g).pvalue))
+    tests = pd.DataFrame(rows)
+    tests.to_csv(OUT / "window_dropout_tests.csv", index=False)
+    pd.set_option("display.width", 200)
+    print(tests.round(4).to_string(index=False))
+    print("dropout-free fraction (median):", df[df.subset == "dropout_free"].groupby("condition").frac.median().round(3).to_dict())

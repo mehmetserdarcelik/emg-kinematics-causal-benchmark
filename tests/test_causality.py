@@ -40,6 +40,24 @@ def test_future_replacement():
                                rtol=0, atol=1e-9), f"W={W}, t*={t_star}: features depend on the future"
 
 
+def test_tcn_is_causal():
+    """End-to-end check of the network: perturbing future inputs must not change earlier outputs."""
+    import torch
+    from deep import TCN
+    torch.manual_seed(0)
+    net = TCN(42, 2).eval()
+    x = torch.randn(1, 600, 42)
+    for t_star in (100, 253, 400):
+        y = x.clone()
+        y[:, t_star:] = torch.randn_like(y[:, t_star:]) * 5
+        with torch.no_grad():
+            a, b = net(x), net(y)
+        assert torch.allclose(a[:, :t_star], b[:, :t_star], atol=1e-6), f"TCN output depends on the future (t*={t_star})"
+        assert not torch.allclose(a[:, t_star:], b[:, t_star:]), "perturbation had no effect"
+
+
 if __name__ == "__main__":
     test_future_replacement()
     print("causality test passed for W =", WINDOWS)
+    test_tcn_is_causal()
+    print("TCN end-to-end causality test passed")

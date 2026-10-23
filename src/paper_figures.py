@@ -81,7 +81,7 @@ def fig1():
     ax.text(0.975, 0.62, "q̂, q̂̇\n(t + Δ)", ha="left", va="center", fontsize=8, transform=ax.transAxes)
     ax.add_patch(FancyBboxPatch((0.47, 0.0), 0.3, 0.24, boxstyle="round,pad=0.01,rounding_size=0.02",
                                 fc="#fdf1ea", ec=ORANGE, lw=1, transform=ax.transAxes, clip_on=False))
-    ax.text(0.62, 0.12, "Measured kinematics q, q̇ (t − d)\n(delayed-feedback analyses only)", ha="center",
+    ax.text(0.62, 0.12, "Measured kinematics q, q̇ (t − d)\n(zero-phase filtered; delayed-feedback analyses only)", ha="center",
             va="center", fontsize=7.2, transform=ax.transAxes)
     ax.text(0.79, -0.02, "residual fusion (ridge) or early fusion (TCN)", ha="left", va="center", fontsize=6.3,
             color=ORANGE, transform=ax.transAxes)
@@ -199,23 +199,28 @@ def fig4():
     title(ax, "a  EMG vs persistence")
     ax = axs[1]
     kin = sw[sw.kind == "kin"].set_index(["condition", "joint", "subject", "delay_ms"]).r2
+    lf = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "latefusion" / "S*.csv"))])
+    lp = lf.pivot_table(index=["condition", "joint", "subject", "delay_ms"], columns="arm", values="r2")
     for (c, j), lab, col in J3:
-        for W, ls in ((200, "-"), (50, ":")):
-            fu = sw[(sw.kind == "fused") & (sw.W == W)].set_index(["condition", "joint", "subject",
-                                                                     "delay_ms"]).r2
-            d = (fu - kin).loc[(c, j)].groupby(level=1).median()
-            ax.plot(d.index, d.values, color=col, lw=1.5, ls=ls)
-        sh = kc[(kc.kind.str.startswith("shift")) & (kc.condition == c) & (kc.joint == j)]
-        k0 = kc[(kc.kind == "kin") & (kc.condition == c) & (kc.joint == j)].set_index(["subject", "delay_ms"]).r2
-        sd = (sh.set_index(["subject", "delay_ms"]).r2 - k0).groupby(level=1).median()
-        ax.scatter(sd.index, sd.values, color=col, marker="x", s=14)
+        x = lp.loc[(c, j)]
+        for arm, ls, lw in (("late_w25", "-", 1.6), ("late_w200", "--", 1.2)):
+            d = (x[arm] - x["kin"]).groupby(level=1).median()
+            ax.plot(d.index, d.values, color=col, lw=lw, ls=ls)
+        fu = sw[(sw.kind == "fused") & (sw.W == 200)].set_index(["condition", "joint", "subject", "delay_ms"]).r2
+        d = (fu - kin).loc[(c, j)].groupby(level=1).median()
+        ax.plot(d.index, d.values, color=col, lw=0.9, ls=":")
+        sd = (x["late_shift5_w200"] - x["kin"]).groupby(level=1).median()
+        sd = sd[sd.index.isin([0, 50, 100, 150])]
+        off = {"SJ elbow": -4, "MJ shoulder": 0, "MJ elbow": 4}[lab]
+        ax.scatter(sd.index + off, sd.values, color=col, marker="x", s=14)
     ax.axhline(0.01, color=INK2, lw=0.7, ls="-.")
-    ax.plot([], [], color=INK2, lw=1.5, label="W = 200 ms")
-    ax.plot([], [], color=INK2, lw=1.5, ls=":", label="W = 50 ms")
+    ax.plot([], [], color=INK2, lw=1.6, label="late fusion, W = 25 ms")
+    ax.plot([], [], color=INK2, lw=1.2, ls="--", label="late fusion, W = 200 ms")
+    ax.plot([], [], color=INK2, lw=0.9, ls=":", label="linear residual fusion")
     ax.scatter([], [], color=INK2, marker="x", s=14, label="time-shifted EMG")
     ax.set_xlabel("Kinematic delay d (ms)")
     ax.set_ylabel("ΔR² (EMG added)")
-    ax.legend(fontsize=6.3, loc="upper left")
+    ax.legend(fontsize=5.8, loc="upper left")
     title(ax, "b  Added value vs delay")
     ax = axs[2]
     BW = (25, 50, 200)
@@ -227,6 +232,8 @@ def fig4():
             lo = r.ci_lo if np.isfinite(r.ci_lo) else 160
             hi = r.ci_hi if np.isfinite(r.ci_hi) else 165
             ax.plot([lo, hi], [y, y], color=col, lw=2, alpha=al)
+            if not np.isfinite(r.ci_hi):
+                ax.scatter([165], [y], color=col, marker=">", s=22, alpha=al, zorder=3)
             fin = np.isfinite(r.d_star)
             ax.scatter([r.d_star if fin else 165], [y], color=col, s=26, marker="o" if fin else ">", alpha=al,
                        zorder=3)
