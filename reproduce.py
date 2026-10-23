@@ -24,6 +24,8 @@ TRAIN = [  # GPU; per-participant outputs are skipped if they already exist
     ["src/run_extra.py", "wsweep"],
     ["src/check_w200_path.py"],
     ["src/run_latefusion.py"],
+    ["src/run_latefusion.py", "round2"],
+    ["src/run_kintcn.py"],
 ]
 CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
     ["src/k_checks.py"],
@@ -32,6 +34,7 @@ CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
     ["src/check_lag.py"],
     ["src/dropouts.py"],
     ["src/latefusion.py"],
+    ["src/causal_kin_check.py"],
     ["src/window_dropout_check.py"],
     ["src/filter_evidence.py"],
     ["src/timing.py"],

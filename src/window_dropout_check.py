@@ -2,7 +2,9 @@
 
 The EMG-only TCN test predictions saved for late fusion (q, qd (t + 100 ms); W = 25, 50, 200 ms) are evaluated on all
 samples and on dropout-free samples only (no dropout in any channel during the 200 ms before the input time, which
-also covers the longest window). Output: results/latefusion/window_dropout.csv and window_dropout_tests.csv
+also covers the longest window), and on samples without dropouts in the whole network context (receptive field plus
+window, 2.73 s; the first 2.73 s of each trial excluded; at least 10 s of data required).
+Output: results/latefusion/window_dropout.csv and window_dropout_tests.csv
 """
 import sys
 from concurrent.futures import ProcessPoolExecutor

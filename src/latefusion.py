@@ -41,6 +41,8 @@ def run_subject(subject):
     if p2.exists():
         P.update(dict(np.load(p2)))
         arms += ARMS2
+    pk = OUT / f"kintcn_{subject}.npz"
+    KT = dict(np.load(pk)) if pk.exists() else {}   # ensemble control: kinematics-only TCN
     F = features(subject)
     rows = []
     for cond in ("SJ", "MJ"):
@@ -57,15 +59,19 @@ def run_subject(subject):
             y = {i: qd[i][idx[i] + K] for i in range(10)}
             inc = {i: y[i] - ref[i] for i in range(10)}
             test_out = {}   # arm -> {trial: (y, yh)}, weights
-            weights = {a: [] for a in arms}
+            weights = {a: [] for a in list(arms) + ["kintcn"]}
             for f, (test, val) in enumerate(FOLDS):
                 tr = [i for i in range(10) if i not in test and i != val]
                 kin = Ridge().fit(_stack(Xk, tr), _stack(inc, tr), Xk[val], inc[val], A_KIN)
                 kp = {i: ref[i] + kin.predict(Xk[i]) for i in (val, *test)}
                 for i in test:
                     test_out.setdefault("kin", {})[i] = (y[i], kp[i])
-                for arm in arms:
-                    ep = {i: P[f"{cond}|{arm}|f{f}|t{i}"][d:, nJ:2 * nJ] for i in (val, *test)}
+                arm_list = list(arms) + (["kintcn"] if f"{cond}|kintcn_d{d_ms}|f{f}|t{val}" in KT else [])
+                for arm in arm_list:
+                    if arm == "kintcn":
+                        ep = {i: KT[f"{cond}|kintcn_d{d_ms}|f{f}|t{i}"][:, nJ:2 * nJ] for i in (val, *test)}
+                    else:
+                        ep = {i: P[f"{cond}|{arm}|f{f}|t{i}"][d:, nJ:2 * nJ] for i in (val, *test)}
                     a = np.array([GRID[int(np.argmin([np.mean((y[val][:, j] - ((1 - g) * kp[val][:, j]
                                                                                 + g * ep[val][:, j])) ** 2)
                                                        for g in GRID]))] for j in range(nJ)])

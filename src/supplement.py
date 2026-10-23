@@ -372,6 +372,7 @@ def s6():
                      "ΔR² shifted EMG, W=25": (x["late_shift5_w25"] - x["kin"]).median(),
                      "ΔR² shifted EMG, W=200": (x["late_shift5_w200"] - x["kin"]).median(),
                      "ΔR² oracle weight, W=25": (x["oracle_w25"] - x["kin"]).median(),
+                     "ΔR² kinematics-only TCN": (x["late_kintcn"] - x["kin"]).median() if "late_kintcn" in x else np.nan,
                      "EMG weight (W=25)": wsel.median()})
     lfs = pd.DataFrame(rows)
     lfs["o"] = lfs.Target.map({t[2]: i for i, t in enumerate(J3)})
@@ -382,6 +383,12 @@ def s6():
                    Seed=[1 if "seed1" in a else 0 for a in cr.arm])
     cr = cr[["Target", "W", "Seed", "d001", "ci_lo", "ci_hi"]].rename(columns={"d001": "d₀.₀₁ (ms)", "ci_lo": "CI low",
                                                                       "ci_hi": "CI high"})
+    ck = pd.read_csv(R / "latefusion" / "causal_kin_summary.csv")
+    ck = ck.assign(Target=[x[2] for c_, j_ in zip(ck.condition, ck.joint) for x in J3 if x[:2] == (c_, j_)])
+    ck["o"] = ck.Target.map({t[2]: i for i, t in enumerate(J3)})
+    ck = ck.sort_values(["o", "delay_ms"])[["Target", "delay_ms", "kin_causal", "late_causal_w25", "gain", "wins"]].rename(
+        columns={"delay_ms": "d (ms)", "kin_causal": "Kinematics R² (causal pass)", "late_causal_w25": "Late fusion R² (W=25)",
+                 "gain": "Median ΔR²", "wins": "ΔR² > 0 (n/17)"})
     k3 = pd.read_csv(R / "k_checks" / "K3B_tcn.csv")
     k3 = k3.assign(Target=[x[2] for c_, j_ in zip(k3.condition, k3.joint) for x in J3 if x[:2] == (c_, j_)])
     k3 = k3[["W", "d", "Target", "median", "wins", "p_holm", "pos"]].rename(columns={
@@ -409,13 +416,17 @@ def s6():
 
 {md(k3, 4)}
 
-**Table S6.7.** Nominal delay at which the median late-fusion gain reached 0.01 (linear interpolation between tested delays) with 95 % participant-level bootstrap CI (10 000 resamples).
+**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (W = 25 and 200 ms; the W = 50 ms arm is compared with the 25-ms control in Table S6.6's tests), with the weight selected on the test trials (oracle upper bound, W = 25 ms), and with a kinematics-only TCN instead of the EMG-only TCN (ensemble control; d = 100 and 150 ms only); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
+
+{md(lfs, 4)}
+
+**Table S6.7.** Nominal delay at which the median late-fusion gain reached 0.01 (linear interpolation between tested delays) with 95 % participant-level bootstrap CI (10 000 resamples). The delays were tested on a grid of 20 ms or less; because the gain curves are convex, linear interpolation may place the crossing slightly early. The CIs cover participant sampling, not model or window selection.
 
 {md(cr, 1)}
 
-**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (same window), and with the weight selected on the test trials (oracle upper bound, W = 25 ms); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
+**Table S6.8.** Kinematics-only ridge and late fusion (EMG-only TCN, W = 25 ms) for q̇(t + 100 ms) when the provided kinematic inputs were passed once more through the stated 3-Hz Butterworth filter in the forward direction only (approximating causally filtered kinematic feedback; the future information already in the provided signals is not removed). Medians across participants; target unchanged.
 
-{md(lfs, 4)}
+{md(ck, 4)}
 """
 
 

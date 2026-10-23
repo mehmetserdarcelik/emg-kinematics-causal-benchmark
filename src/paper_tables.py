@@ -39,7 +39,7 @@ T1 = """**Table 1.** Issues identified in the audit of the open dataset and how 
 | MJ angular velocity units | Ratio to the numerical derivative of the angle 100.2–100.5 (r = 0.998); SJ ratio 1.0 | Multiplied by 100 (rad·sample⁻¹ at 100 Hz → rad·s⁻¹) |
 | MVC recordings | 0.00 % of power above 20 Hz in all 34 files (trial EMG: 63–96 %); consistent with a processed envelope | MVC normalisation not used; z-scoring with training statistics |
 | Wireless sensor dropouts | Runs of ≥ 20 identical raw samples in 1 491 of 3 230 trial–channel pairs (≈ 30 000 segments, mostly 10–20 ms, up to 7 s; 744 s in total); genuine EMG ≤ 2–3 identical consecutive samples | Online detection (≥ 20 identical samples), causal forward fill of features; median 17 % of samples per participant and condition (range 1–78 %) within an affected 200-ms window |
-| Zero-phase kinematic filtering | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
+| Zero-phase kinematic filtering (very likely) | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
 | MJ elbow angle saturation | Plateau near 130° in some participants (≤ 4.7 % of samples) | Excluded in sensitivity analysis (median R² change ≤ 0.015) |
 """
 
@@ -98,8 +98,8 @@ def table3():
         _, lo, hi = boot_ci(np.asarray(x))
         f = lambda v: "0.000" if abs(v) < 0.0005 else f"{v:+.3f}".replace("-", "−")  # noqa: E731
         m = np.median(x)
-        mm = "0.0000" if abs(m) < 0.00005 else f"{m:+.4f}".replace("-", "−")
-        return f"{mm} [{f(lo)}, {f(hi)}]"
+        g = lambda v: "0.0000" if abs(v) < 0.00005 else f"{v:+.4f}".replace("-", "−")  # noqa: E731
+        return f"{g(m)} [{g(lo)}, {g(hi)}]"
     out = []
     for r, q in zip(recs, ph):
         t = r["t"]
@@ -107,17 +107,17 @@ def table3():
         out.append(f"| {r['lab']} | {r['d']} | {r['kin']:.3f} | {ci(r['rd'])} ({int((r['rd'] > 0).sum())}/17, "
                    f"p_Holm {fp(q)}) | {ci(r['l200'])} ({int(t2.wins)}/17, p_Holm {fp(t2.p_holm)}) | "
                    f"{ci(r['l25'])} ({int(t.wins)}/17, p_Holm {fp(t.p_holm)}) | {r['rmse']} | "
-                   f"{'yes' if t.pos else 'no'} |")
+                   f"{'R, L' if (t.pos and np.median(r['rd']) >= 0.01 and q < 0.05) else 'L' if t.pos else 'R' if (np.median(r['rd']) >= 0.01 and q < 0.05) else '—'} |")
     head = ("**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction q̇(t + 100 ms). "
             "Kinematics-only model: ridge on [q, q̇](t − d). Residual fusion (pre-specified test): a linear EMG model "
             "added to the kinematic residuals (W = 200 ms). Late fusion: weighted combination of the kinematics-only "
             "and EMG-only TCN predictions, weight selected on the validation trial (W = 200 or 25 ms). ΔR²: median "
             "paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with "
-            "ΔR² > 0 and Holm-corrected Wilcoxon p (residual fusion: 12 tests; late fusion: 36 tests over windows). RMSE in °·s⁻¹. "
-            "Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (late fusion, W = 25 ms). Nominal delays d: the "
+            "ΔR² > 0 and Holm-corrected Wilcoxon p (residual fusion: 12 tests; late fusion, seed 0: 36 tests over the three windows and four delays per comparison type). RMSE in °·s⁻¹. "
+            "Criterion met (median ΔR² ≥ 0.01 and p_Holm < 0.05): R, residual fusion (pre-specified); L, late fusion with W = 25 ms (exploratory). Nominal delays d: the "
             "provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion "
             "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with TCNs trained on EMG shifted "
-            "by 5 s with the same window, ΔR² −0.002 to 0.000. Holm families for late fusion: 36 tests over the three windows.\n\n"
+            "by 5 s with the same window, ΔR² −0.002 to 0.000; late fusion with a kinematics-only TCN instead of EMG (ensemble control), ΔR² −0.001 to +0.001.\n\n"
             "| Target | d (ms) | R² kinematics | ΔR² residual fusion, W = 200 | ΔR² late fusion, W = 200 | "
             "ΔR² late fusion, W = 25 | RMSE kinematics → late fusion (W = 25) | Meets criterion |\n"
             "|---|---|---|---|---|---|---|---|\n")

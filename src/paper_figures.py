@@ -68,8 +68,8 @@ def fig1():
     title(ax, "a  Causal decoding pipeline")
     bw, step = 0.135, 0.157
     boxes = [(t_, 0.012 + i * step) for i, t_ in enumerate(
-        ["Raw EMG\n2 kHz", "Notch +\nband-pass", "Dropout\ndetection", "6 features/ch\nwindow W",
-         "z-score\n(train stats)", "Causal TCN\n2.53 s RF"])]
+        ["Raw EMG\n2 kHz", "Notch +\nband-pass", "Dropout detection\n(on raw EMG)", "6 features/ch\nwindow W",
+         "z-score\n(train stats)", "Causal TCN\n2.53-s context"])]
     for txt, x in boxes:
         ax.add_patch(FancyBboxPatch((x, 0.42), bw, 0.4, boxstyle="round,pad=0.01,rounding_size=0.02",
                                     fc="#eef3fb", ec=BLUE, lw=1, transform=ax.transAxes, clip_on=False))

@@ -36,7 +36,7 @@ This recomputes all summary tables and statistics from the per-participant files
 python reproduce.py --all
 ```
 
-This runs the complete pipeline in the order listed in `reproduce.py`. The model training takes several days on a single consumer GPU (the paper used an NVIDIA RTX 2070 SUPER). Per-participant outputs that already exist are skipped, so the pipeline can be interrupted and resumed. Delete the corresponding files in `results/` to recompute them. For long unattended runs, GPU load and temperature can be limited with the environment variables `GPU_DUTY` (e.g. `0.5`), `GPU_TEMP_HIGH` and `GPU_TEMP_LOW` (see `src/deep.py`). Only `results/v2/preds_S14.npz` (used for Fig. 1) is included among the within-subject prediction files; `src/analysis_cpu.py` needs those of all participants, which `src/run_v2.py` regenerates (it reruns a participant if the prediction file is missing). The EMG-only TCN predictions used for late fusion are included in `results/latefusion/`.
+This runs the complete pipeline in the order listed in `reproduce.py`. The model training takes several days on a single consumer GPU (the paper used an NVIDIA RTX 2070 SUPER). Per-participant outputs that already exist are skipped, so the pipeline can be interrupted and resumed. Delete the corresponding files in `results/` to recompute them. For long unattended runs, GPU load and temperature can be limited with the environment variables `GPU_DUTY` (e.g. `0.5`), `GPU_TEMP_HIGH` and `GPU_TEMP_LOW` (see `src/deep.py`). Only `results/v2/preds_S14.npz` (used for Fig. 1) is included among the within-subject prediction files; `src/analysis_cpu.py` needs those of all participants, which `src/run_v2.py` regenerates (it reruns a participant if the prediction file is missing). The EMG-only and kinematics-only TCN predictions used for late fusion are included in `results/latefusion/`.
 
 | Script | Paper section | Output |
 |---|---|---|
@@ -46,7 +46,9 @@ This runs the complete pipeline in the order listed in `reproduce.py`. The model
 | `run_horizon.py`, `analysis_cpu.py` | 2.7, 3.4, 3.6 | `results/horizon/`, `results/extra/cpu_*` |
 | `k_checks.py` (`K_SWEEP=1` for all windows) | 2.7–2.8, 3.5 | `results/k_checks/`, `results/k_checks_sweep/` |
 | `run_extra.py hbase2/hbase3/hbase4/k3b` | 2.7, 3.5 (early fusion) | `results/extra/` |
-| `run_latefusion.py` (GPU), `latefusion.py` | 2.7, 3.5 (late fusion) | `results/latefusion/` |
+| `run_latefusion.py` and `run_latefusion.py round2` (GPU), `latefusion.py` | 2.7, 3.5 (late fusion) | `results/latefusion/` |
+| `run_kintcn.py` (GPU) | 2.7, 3.5 (ensemble control) | `results/latefusion/kintcn_*.npz` |
+| `causal_kin_check.py` | 2.7, 3.5 (causally filtered kinematics) | `results/latefusion/causal_kin*.csv` |
 | `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py`, `window_dropout_check.py` | 2.8, 3.5 | `results/extra/`, `results/latefusion/` |
 | `filter_evidence.py`, `timing.py` | 2.2, 3.6, Supplementary S2 | `results/extra/` |
 | `aggregate.py`, `stats.py`, `k_analysis.py`, `k2_breakeven.py`, `tost.py` | 2.9 | summary tables in `results/` |
