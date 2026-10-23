@@ -79,13 +79,13 @@ def fig1():
         ax.annotate("", xy=(end, 0.62), xytext=(x + bw + 0.008, 0.62), xycoords="axes fraction",
                     arrowprops=dict(arrowstyle="->", color=INK2, lw=1))
     ax.text(0.975, 0.62, "q̂, q̂̇\n(t + Δ)", ha="left", va="center", fontsize=8, transform=ax.transAxes)
-    ax.add_patch(FancyBboxPatch((0.47, 0.0), 0.3, 0.24, boxstyle="round,pad=0.01,rounding_size=0.02",
+    ax.add_patch(FancyBboxPatch((0.43, -0.12), 0.34, 0.36, boxstyle="round,pad=0.01,rounding_size=0.02",
                                 fc="#fdf1ea", ec=ORANGE, lw=1, transform=ax.transAxes, clip_on=False))
-    ax.text(0.62, 0.12, "Measured kinematics q, q̇ (t − d)\n(zero-phase filtered; delayed-feedback analyses only)", ha="center",
-            va="center", fontsize=7.2, transform=ax.transAxes)
-    ax.text(0.79, -0.02, "residual fusion (ridge) or early fusion (TCN)", ha="left", va="center", fontsize=6.3,
+    ax.text(0.60, 0.06, "Measured kinematics q, q̇ (t − d)\nvery likely zero-phase filtered\n(delayed-feedback analyses only)",
+            ha="center", va="center", fontsize=7.0, transform=ax.transAxes)
+    ax.text(0.80, -0.06, "residual (ridge), late (TCN)\nor early fusion", ha="left", va="center", fontsize=6.3,
             color=ORANGE, transform=ax.transAxes)
-    ax.annotate("", xy=(0.975, 0.50), xytext=(0.775, 0.20), xycoords="axes fraction",
+    ax.annotate("", xy=(0.975, 0.50), xytext=(0.775, 0.16), xycoords="axes fraction",
                 arrowprops=dict(arrowstyle="->", color=ORANGE, lw=1, connectionstyle="arc3,rad=0.25"))
     # b: dropout example
     d = load_subject("S06")
@@ -209,7 +209,9 @@ def fig4():
         fu = sw[(sw.kind == "fused") & (sw.W == 200)].set_index(["condition", "joint", "subject", "delay_ms"]).r2
         d = (fu - kin).loc[(c, j)].groupby(level=1).median()
         ax.plot(d.index, d.values, color=col, lw=0.9, ls=":")
-        sd = (x["late_shift5_w200"] - x["kin"]).groupby(level=1).median()
+        lo_, hi_ = [(x["late_w25"] - x["kin"]).groupby(level=1).quantile(qq) for qq in (0.25, 0.75)]
+        ax.fill_between(lo_.index, lo_.values, hi_.values, color=col, alpha=0.12, lw=0)
+        sd = (x["late_shift5_w25"] - x["kin"]).groupby(level=1).median()
         sd = sd[sd.index.isin([0, 50, 100, 150])]
         off = {"SJ elbow": -4, "MJ shoulder": 0, "MJ elbow": 4}[lab]
         ax.scatter(sd.index + off, sd.values, color=col, marker="x", s=14)

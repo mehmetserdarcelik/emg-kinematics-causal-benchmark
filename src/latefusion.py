@@ -21,6 +21,7 @@ OUT = ROOT / "results" / "latefusion"
 K = 10
 DELAYS = [0, 20, 40, 50, 60, 80, 100, 120, 140, 150, 160]
 ARMS = ["w25", "w50", "w200", "shift5_w200"]
+ARMS2 = ["shift5_w25", "seed1_w25", "seed1_w200"]   # matched control and second seed (preds2_SXX.npz)
 GRID = np.round(np.arange(0, 1.0001, 0.05), 2)
 
 
@@ -34,7 +35,12 @@ def run_subject(subject):
     pfile = OUT / f"preds_{subject}.npz"
     if not pfile.exists():
         return []
-    P = np.load(pfile)
+    P = dict(np.load(pfile))
+    p2 = OUT / f"preds2_{subject}.npz"
+    arms = list(ARMS)
+    if p2.exists():
+        P.update(dict(np.load(p2)))
+        arms += ARMS2
     F = features(subject)
     rows = []
     for cond in ("SJ", "MJ"):
@@ -51,19 +57,27 @@ def run_subject(subject):
             y = {i: qd[i][idx[i] + K] for i in range(10)}
             inc = {i: y[i] - ref[i] for i in range(10)}
             test_out = {}   # arm -> {trial: (y, yh)}, weights
-            weights = {a: [] for a in ARMS}
+            weights = {a: [] for a in arms}
             for f, (test, val) in enumerate(FOLDS):
                 tr = [i for i in range(10) if i not in test and i != val]
                 kin = Ridge().fit(_stack(Xk, tr), _stack(inc, tr), Xk[val], inc[val], A_KIN)
                 kp = {i: ref[i] + kin.predict(Xk[i]) for i in (val, *test)}
                 for i in test:
                     test_out.setdefault("kin", {})[i] = (y[i], kp[i])
-                for arm in ARMS:
+                for arm in arms:
                     ep = {i: P[f"{cond}|{arm}|f{f}|t{i}"][d:, nJ:2 * nJ] for i in (val, *test)}
                     a = np.array([GRID[int(np.argmin([np.mean((y[val][:, j] - ((1 - g) * kp[val][:, j]
                                                                                 + g * ep[val][:, j])) ** 2)
                                                        for g in GRID]))] for j in range(nJ)])
                     weights[arm].append(a)
+                    if arm == "w25":   # oracle upper bound: weight chosen on the test trials (descriptive only)
+                        yt = np.vstack([y[i] for i in test])
+                        kt = np.vstack([kp[i] for i in test])
+                        et = np.vstack([ep[i] for i in test])
+                        ao = np.array([GRID[int(np.argmin([np.mean((yt[:, j] - ((1 - g) * kt[:, j] + g * et[:, j])) ** 2)
+                                                           for g in GRID]))] for j in range(nJ)])
+                        for i in test:
+                            test_out.setdefault("oracle_w25", {})[i] = (y[i], (1 - ao) * kp[i] + ao * ep[i])
                     for i in test:
                         test_out.setdefault(f"emg_{arm}", {})[i] = (y[i], ep[i])
                         test_out.setdefault(f"late_{arm}", {})[i] = (y[i], (1 - a) * kp[i] + a * ep[i])
@@ -92,30 +106,59 @@ def holm(p):
     return adj
 
 
+def cross(ds, v, thr=0.01):
+    for i in range(1, len(ds)):
+        if v[i - 1] < thr <= v[i]:
+            return ds[i - 1] + (thr - v[i - 1]) * (ds[i] - ds[i - 1]) / (v[i] - v[i - 1])
+    return np.inf
+
+
+def crossings(df, arms=("late_w25", "late_w50", "late_w200", "late_seed1_w25", "late_seed1_w200"), n_boot=10000):
+    """Nominal delay at which the median late-fusion gain reaches 0.01, with participant-level bootstrap 95 % CI."""
+    rng = np.random.default_rng(0)
+    piv = df.pivot_table(index=["condition", "joint", "subject", "delay_ms"], columns="arm", values="r2")
+    rows = []
+    for (c, j), s in piv.groupby(level=[0, 1]):
+        for arm in [a for a in arms if a in s]:
+            g = (s[arm] - s["kin"]).droplevel([0, 1]).unstack("delay_ms")
+            ds = g.columns.values.astype(float)
+            G = g.values
+            est = cross(ds, np.median(G, 0))
+            bs = np.array([cross(ds, np.median(G[rng.integers(0, len(G), len(G))], 0)) for _ in range(n_boot)])
+            fin = np.where(np.isfinite(bs), bs, 1e9)
+            rows.append(dict(condition=c, joint=j, arm=arm, d001=est, ci_lo=np.percentile(fin, 2.5),
+                             ci_hi=np.percentile(fin, 97.5), frac_no_cross=np.mean(~np.isfinite(bs))))
+    return pd.DataFrame(rows)
+
+
 def summarise(df):
     rng = np.random.default_rng(0)
     piv = df.pivot_table(index=["condition", "joint", "subject", "delay_ms"], columns="arm", values="r2")
     summ = df.groupby(["condition", "joint", "delay_ms", "arm"]).agg(
         r2=("r2", "median"), rmse=("rmse_degs", "median"), weight=("weight", "median")).reset_index()
+    # each window against its own shifted control (W = 50: nearest, W = 25); the windows form one Holm family
+    ctrl = {"w25": "late_shift5_w25", "w50": "late_shift5_w25", "w200": "late_shift5_w200",
+            "seed1_w25": "late_shift5_w25", "seed1_w200": "late_shift5_w200"}
     tests = []
-    for W in ("w25", "w50", "w200"):
+    for W in [w for w in ("w25", "w50", "w200", "seed1_w25", "seed1_w200") if f"late_{w}" in piv]:
         fam = []
         for (c, j), s in piv.groupby(level=[0, 1]):
             for d in (0, 50, 100, 150):
                 x = s.xs(d, level="delay_ms")
                 for comp, a, b in (("late_vs_kin", f"late_{W}", "kin"),
-                                   ("late_vs_shift", f"late_{W}", "late_shift5_w200")):
+                                   ("late_vs_shift", f"late_{W}", ctrl[W] if ctrl[W] in x else "late_shift5_w200")):
                     dd = (x[a] - x[b]).dropna()
                     bs = np.median(rng.choice(dd.values, (10000, len(dd))), axis=1)
                     fam.append(dict(W=W, comparison=comp, condition=c, joint=j, delay_ms=d, n=len(dd),
                                     wins=int((dd > 0).sum()), median=dd.median(), ci_lo=np.percentile(bs, 2.5),
                                     ci_hi=np.percentile(bs, 97.5),
                                     p=wilcoxon(dd).pvalue if (dd != 0).any() else 1.0))
-        f = pd.DataFrame(fam)
-        f["p_holm"] = f.groupby("comparison").p.transform(lambda s: holm(s.values))
-        f["pos"] = (f["median"] >= 0.01) & (f.p_holm < 0.05)
-        tests.append(f)
-    return summ, pd.concat(tests, ignore_index=True)
+        tests.append(pd.DataFrame(fam))
+    t = pd.concat(tests, ignore_index=True)
+    t["family"] = np.where(t.W.str.startswith("seed1"), "seed1", "seed0")
+    t["p_holm"] = t.groupby(["family", "comparison"]).p.transform(lambda s: holm(s.values))
+    t["pos"] = (t["median"] >= 0.01) & (t.p_holm < 0.05)
+    return summ, t
 
 
 if __name__ == "__main__":
@@ -125,6 +168,7 @@ if __name__ == "__main__":
     n = df.subject.nunique()
     summ, tests = summarise(df)
     summ.to_csv(OUT / "summary.csv", index=False)
+    crossings(df).to_csv(OUT / "crossings.csv", index=False)
     tests.to_csv(OUT / "tests.csv", index=False)
     pd.set_option("display.width", 220)
     print(f"{n} participants")

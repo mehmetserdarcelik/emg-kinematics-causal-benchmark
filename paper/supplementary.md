@@ -45,11 +45,11 @@ All checks used the files of Zenodo record 11209324 (MD5 of the archive `ea2dd9d
 
 # S2. Evidence that the provided kinematics are zero-phase filtered
 
-The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four independent indications support zero-phase (forward–backward) filtering. All values below are computed by `src/filter_evidence.py`.
+The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four supporting indications point to zero-phase (forward–backward) filtering. All values below are computed by `src/filter_evidence.py`.
 
 1. **Statement in the first preprint.** The first bioRxiv version of the source study (posted 12 January 2024, Section II.D.2) states that "all filters were bidirectionally applied" [QuesadaBioRxiv2024v1]. The sentence appears in the EMG subsection; later versions restrict the statement to EMG and do not specify the direction for the kinematics.
 2. **Spectral roll-off.** Marker noise is approximately white at high frequency, so after filtering the spectrum follows |H|² for a single pass and |H|⁴ for a forward–backward pass. The slope of the median power spectral density (Welch, 512-sample DPSS window, NW = 8) of the differenced SJ elbow angle (170 trials) was compared with 200 simulated white-noise signals filtered once or forward–backward with the stated filter (Table S2.1).
-3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor. Its spectrum is broadband (slope −45 to −10 dB/decade between 10 and 40 Hz across participants, compared with −293 dB/decade for the twice-differenced angle), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the peak of the cross-correlation between the provided velocity and the torque (±300 ms) showed the velocity *leading* the torque by a median of 65 ms (participant medians 40–90 ms; 17/17 participants). After an additional causal 3-Hz pass, the velocity lagged the torque by a median of 80 ms, confirming the sensitivity of the test.
+3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor. Its spectrum is broadband (slope −45 to −10 dB/decade between 10 and 40 Hz across participants, compared with −293 dB/decade for the twice-differenced angle), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the peak of the cross-correlation between the provided velocity and the torque (±300 ms) showed the velocity *leading* the torque by a median of 65 ms (participant medians 40–90 ms; 17/17 participants). Because the torque also contains terms computed from the provided kinematics, this test is not fully independent of them; however, in SJ the torque is dominated by the measured interaction torque. After an additional causal 3-Hz pass, the velocity lagged the torque by a median of 80 ms, confirming the sensitivity of the test.
 4. **Practice of the same laboratory.** Another study from the same group with the same exoskeleton explicitly filters position data with a zero-phase Butterworth filter [Verdel2023].
 
 **Table S2.1.** Spectral slope (dB/decade) of the differenced angle signal.
@@ -62,7 +62,7 @@ The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for 
 
 **Future information in the provided kinematics.** For a forward–backward 4th-order 3-Hz Butterworth filter, the impulse response extends into the future. Its energy beyond +50, +100, +150 and +200 ms is 16.4, 3.1, 1.1 and 1.0 % (absolute weight: 27.2, 13.8, 9.0 and 7.7 %); 95 % of the absolute weight lies within ±350 ms. Kinematic inputs delayed by a nominal d therefore still contain some information from after t − d, particularly for d ≤ 50 ms.
 
-Because raw kinematics are not available, the filtering cannot be undone, and re-filtering the provided signals causally would not remove the future information they already contain. The nominal delays are interpreted with this limitation (Sections 2.7 and 4.7).
+Because raw kinematics are not available, the filtering cannot be undone, and re-filtering the provided signals causally would not remove the future information they already contain. The nominal delays are interpreted with this limitation (Sections 2.7 and 4.6).
 
 
 # S3. Decision rules fixed before the control analyses, outcomes and deviations
@@ -88,7 +88,7 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 3. *Delays 50 and 100 ms* (TCN early fusion) were added after inspecting the d = 0 and 150 ms results.
 4. *Window sweep.* The full TCN sweep (W = 25–250 ms) and the ridge sweep with W = 25, 75, 150 and 250 ms were added after the control analyses, as were the diagnostic analyses in S5.
 5. *Equivalence test.* The TOST for EMG + torque versus torque (S4) was added after review.
-6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with a TCN trained on time-shifted EMG as the negative control; the same predictions were used to compare windows on dropout-free samples (Table S5.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added at this stage.
+6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were treated as one Holm family, an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
 
 
 # S4. Additional metrics, statistics and robustness
@@ -378,22 +378,28 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | MJ elbow    | EMG-TCN          | 250 |         0.612 | > 160     | > 160    | > 160     |                0.999 |
 | MJ elbow    | EMG-ridge        | 250 |         0.587 | > 160     | > 160    | > 160     |                1     |
 
-**Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain, evaluated on all samples and on samples without a dropout in any channel during the preceding 200 ms.
+**Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain with 95 % bootstrap CI, evaluated on all samples, on samples without a dropout in any channel during the preceding 200 ms, and on samples without a dropout during the whole network context (≈ 2.7 s; dropouts marked over their full length; first 2.7 s of each trial excluded). N: participants with at least 10 s of retained data.
 
-| Target               | Samples      |   R² W=25 |   R² W=200 |   Median gain |   Gain > 0 (n/17) |
-|:---------------------|:-------------|----------:|-----------:|--------------:|------------------:|
-| MJ elbow angle       | all samples  |     0.816 |      0.803 |         0.022 |                16 |
-| MJ elbow velocity    | all samples  |     0.73  |      0.64  |         0.076 |                17 |
-| MJ shoulder angle    | all samples  |     0.932 |      0.919 |         0.009 |                17 |
-| MJ shoulder velocity | all samples  |     0.834 |      0.763 |         0.066 |                17 |
-| SJ elbow angle       | all samples  |     0.941 |      0.926 |         0.016 |                17 |
-| SJ elbow velocity    | all samples  |     0.879 |      0.811 |         0.062 |                17 |
-| MJ elbow angle       | dropout-free |     0.815 |      0.802 |         0.021 |                16 |
-| MJ elbow velocity    | dropout-free |     0.721 |      0.649 |         0.075 |                17 |
-| MJ shoulder angle    | dropout-free |     0.929 |      0.92  |         0.011 |                17 |
-| MJ shoulder velocity | dropout-free |     0.838 |      0.775 |         0.055 |                17 |
-| SJ elbow angle       | dropout-free |     0.942 |      0.925 |         0.015 |                17 |
-| SJ elbow velocity    | dropout-free |     0.884 |      0.819 |         0.06  |                17 |
+| Target               | Samples                        | Fraction kept, median (min)   |   R² W=25 |   R² W=200 |   Median gain | 95 % CI         | Gain > 0 (n/N)   |
+|:---------------------|:-------------------------------|:------------------------------|----------:|-----------:|--------------:|:----------------|:-----------------|
+| MJ elbow angle       | all samples                    | 1.00 (≥ 1.00)                 |     0.816 |      0.803 |         0.022 | [0.015, 0.027]  | 16/17            |
+| MJ elbow velocity    | all samples                    | 1.00 (≥ 1.00)                 |     0.73  |      0.64  |         0.076 | [0.067, 0.091]  | 17/17            |
+| MJ shoulder angle    | all samples                    | 1.00 (≥ 1.00)                 |     0.932 |      0.919 |         0.009 | [0.008, 0.015]  | 17/17            |
+| MJ shoulder velocity | all samples                    | 1.00 (≥ 1.00)                 |     0.834 |      0.763 |         0.066 | [0.049, 0.078]  | 17/17            |
+| SJ elbow angle       | all samples                    | 1.00 (≥ 1.00)                 |     0.941 |      0.926 |         0.016 | [0.011, 0.030]  | 17/17            |
+| SJ elbow velocity    | all samples                    | 1.00 (≥ 1.00)                 |     0.879 |      0.811 |         0.062 | [0.059, 0.081]  | 17/17            |
+| MJ elbow angle       | dropout-free (200 ms)          | 0.83 (≥ 0.22)                 |     0.815 |      0.802 |         0.021 | [0.014, 0.027]  | 16/17            |
+| MJ elbow velocity    | dropout-free (200 ms)          | 0.83 (≥ 0.22)                 |     0.721 |      0.649 |         0.075 | [0.059, 0.088]  | 17/17            |
+| MJ shoulder angle    | dropout-free (200 ms)          | 0.83 (≥ 0.22)                 |     0.929 |      0.92  |         0.011 | [0.006, 0.014]  | 17/17            |
+| MJ shoulder velocity | dropout-free (200 ms)          | 0.83 (≥ 0.22)                 |     0.838 |      0.775 |         0.055 | [0.046, 0.068]  | 17/17            |
+| SJ elbow angle       | dropout-free (200 ms)          | 0.83 (≥ 0.34)                 |     0.942 |      0.925 |         0.015 | [0.007, 0.023]  | 17/17            |
+| SJ elbow velocity    | dropout-free (200 ms)          | 0.83 (≥ 0.34)                 |     0.884 |      0.819 |         0.06  | [0.056, 0.074]  | 17/17            |
+| MJ elbow angle       | dropout-free (network context) | 0.29 (≥ 0.18)                 |     0.849 |      0.846 |         0.007 | [-0.005, 0.021] | 6/10             |
+| MJ elbow velocity    | dropout-free (network context) | 0.29 (≥ 0.18)                 |     0.783 |      0.737 |         0.062 | [0.048, 0.080]  | 10/10            |
+| MJ shoulder angle    | dropout-free (network context) | 0.29 (≥ 0.18)                 |     0.944 |      0.937 |         0.008 | [0.001, 0.009]  | 8/10             |
+| MJ shoulder velocity | dropout-free (network context) | 0.29 (≥ 0.18)                 |     0.842 |      0.805 |         0.041 | [0.031, 0.050]  | 10/10            |
+| SJ elbow angle       | dropout-free (network context) | 0.48 (≥ 0.07)                 |     0.955 |      0.943 |         0.01  | [0.006, 0.015]  | 12/13            |
+| SJ elbow velocity    | dropout-free (network context) | 0.48 (≥ 0.07)                 |     0.893 |      0.83  |         0.053 | [0.038, 0.058]  | 13/13            |
 
 
 # S6. Prediction horizon and delayed kinematic feedback
@@ -585,40 +591,60 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | 200 |      150 | MJ shoulder |       0.1605 |                17 |  0.00018 | True              |
 | 200 |      150 | MJ elbow    |       0.1604 |                17 |  0.00018 | True              |
 
-**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model, median paired gain for W = 25, 50 and 200 ms and for the time-shifted-EMG control (W = 200 ms), and median EMG weight selected on the validation trials (W = 25 ms).
+**Table S6.7.** Nominal delay at which the median late-fusion gain reached 0.01 (linear interpolation between tested delays) with 95 % participant-level bootstrap CI (10 000 resamples).
 
-| Target      |   d (ms) |   Kinematics R² |   ΔR² W=25 |   ΔR² W=50 |   ΔR² W=200 |   ΔR² shifted EMG |   EMG weight (W=25) |
-|:------------|---------:|----------------:|-----------:|-----------:|------------:|------------------:|--------------------:|
-| SJ elbow    |        0 |          0.9921 |     0      |     0      |     -0      |            0      |                0.04 |
-| SJ elbow    |       20 |          0.9847 |     0      |     0.0001 |     -0      |            0      |                0.06 |
-| SJ elbow    |       40 |          0.9728 |     0.0004 |     0.0002 |      0      |            0      |                0.1  |
-| SJ elbow    |       50 |          0.9646 |     0.001  |     0.0007 |      0.0003 |            0      |                0.12 |
-| SJ elbow    |       60 |          0.9547 |     0.0017 |     0.0014 |      0.0005 |            0      |                0.16 |
-| SJ elbow    |       80 |          0.9296 |     0.0057 |     0.0047 |      0.0015 |            0      |                0.26 |
-| SJ elbow    |      100 |          0.8977 |     0.0158 |     0.0136 |      0.0071 |            0      |                0.41 |
-| SJ elbow    |      120 |          0.8589 |     0.0372 |     0.0318 |      0.0169 |           -0.0002 |                0.57 |
-| SJ elbow    |      140 |          0.8145 |     0.0689 |     0.0602 |      0.0356 |           -0.0007 |                0.74 |
-| SJ elbow    |      150 |          0.7906 |     0.0905 |     0.0756 |      0.0483 |           -0.0007 |                0.81 |
-| SJ elbow    |      160 |          0.766  |     0.1105 |     0.1024 |      0.0635 |           -0.001  |                0.87 |
-| MJ shoulder |        0 |          0.9933 |     0      |     0      |     -0.0001 |            0      |                0.02 |
-| MJ shoulder |       20 |          0.987  |     0.0001 |     0.0001 |      0      |            0      |                0.04 |
-| MJ shoulder |       40 |          0.9766 |     0.0007 |     0.0005 |      0.0002 |            0      |                0.08 |
-| MJ shoulder |       50 |          0.9695 |     0.0011 |     0.001  |      0.0001 |            0      |                0.11 |
-| MJ shoulder |       60 |          0.961  |     0.0031 |     0.0028 |      0.0006 |            0      |                0.13 |
-| MJ shoulder |       80 |          0.9393 |     0.0077 |     0.0067 |      0.0019 |            0      |                0.21 |
-| MJ shoulder |      100 |          0.911  |     0.0165 |     0.0144 |      0.0053 |           -0.0001 |                0.29 |
-| MJ shoulder |      120 |          0.8762 |     0.0318 |     0.0283 |      0.0129 |           -0.0008 |                0.4  |
-| MJ shoulder |      140 |          0.8356 |     0.0537 |     0.05   |      0.0274 |           -0.0008 |                0.51 |
-| MJ shoulder |      150 |          0.8141 |     0.0673 |     0.0639 |      0.0367 |           -0.0008 |                0.57 |
-| MJ shoulder |      160 |          0.7923 |     0.0827 |     0.0801 |      0.0477 |           -0.0008 |                0.61 |
-| MJ elbow    |        0 |          0.991  |    -0.0001 |    -0.0001 |     -0.0001 |            0      |                0.03 |
-| MJ elbow    |       20 |          0.9824 |     0      |    -0      |     -0.0002 |            0      |                0.05 |
-| MJ elbow    |       40 |          0.9686 |     0.0003 |     0      |     -0.0002 |            0      |                0.07 |
-| MJ elbow    |       50 |          0.9592 |     0.001  |     0.0007 |      0.0001 |           -0      |                0.1  |
-| MJ elbow    |       60 |          0.9478 |     0.0015 |     0.0007 |      0.0002 |           -0.0002 |                0.12 |
-| MJ elbow    |       80 |          0.9203 |     0.0036 |     0.0037 |      0.0023 |           -0.0005 |                0.16 |
-| MJ elbow    |      100 |          0.8825 |     0.0097 |     0.0083 |      0.0043 |           -0.0005 |                0.23 |
-| MJ elbow    |      120 |          0.8384 |     0.0208 |     0.0173 |      0.0114 |           -0.0018 |                0.31 |
-| MJ elbow    |      140 |          0.7783 |     0.0426 |     0.0352 |      0.0233 |           -0.0019 |                0.4  |
-| MJ elbow    |      150 |          0.7481 |     0.0563 |     0.0476 |      0.0317 |           -0.0017 |                0.46 |
-| MJ elbow    |      160 |          0.7171 |     0.073  |     0.0666 |      0.0426 |           -0.0017 |                0.51 |
+| Target      |   W |   Seed |   d₀.₀₁ (ms) |   CI low |   CI high |
+|:------------|----:|-------:|-------------:|---------:|----------:|
+| MJ elbow    |  25 |      0 |        100.6 |     88   |     110.3 |
+| MJ elbow    |  50 |      0 |        103.8 |     89.2 |     122.2 |
+| MJ elbow    | 200 |      0 |        116   |    102.5 |     129.2 |
+| MJ elbow    |  25 |      1 |        101.4 |     87.5 |     113.2 |
+| MJ elbow    | 200 |      1 |        119.9 |    102.5 |     129.3 |
+| MJ shoulder |  25 |      0 |         85.3 |     80.4 |      97.1 |
+| MJ shoulder |  50 |      0 |         88.5 |     82.6 |     102.4 |
+| MJ shoulder | 200 |      0 |        112.3 |     91.8 |     118.2 |
+| MJ shoulder |  25 |      1 |         87.1 |     80.9 |      97.1 |
+| MJ shoulder | 200 |      1 |        112.5 |     89.3 |     118.2 |
+| SJ elbow    |  25 |      0 |         88.6 |     81.2 |      90.8 |
+| SJ elbow    |  50 |      0 |         91.9 |     84.8 |      99   |
+| SJ elbow    | 200 |      0 |        105.9 |     95.8 |     120.5 |
+| SJ elbow    |  25 |      1 |         88.4 |     80.7 |      90.8 |
+| SJ elbow    | 200 |      1 |        105.7 |     95.7 |     119.6 |
+
+**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (same window), and with the weight selected on the test trials (oracle upper bound, W = 25 ms); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
+
+| Target      |   d (ms) |   Kinematics R² |   ΔR² W=25 |   ΔR² W=50 |   ΔR² W=200 |   ΔR² W=25, seed 1 |   ΔR² W=200, seed 1 |   ΔR² shifted EMG, W=25 |   ΔR² shifted EMG, W=200 |   ΔR² oracle weight, W=25 |   EMG weight (W=25) |
+|:------------|---------:|----------------:|-----------:|-----------:|------------:|-------------------:|--------------------:|------------------------:|-------------------------:|--------------------------:|--------------------:|
+| SJ elbow    |        0 |          0.9921 |     0      |     0      |     -0      |            -0      |             -0      |                  0      |                   0      |                    0.0002 |                0.04 |
+| SJ elbow    |       20 |          0.9847 |     0      |     0.0001 |     -0      |             0.0001 |             -0      |                  0      |                   0      |                    0.0007 |                0.06 |
+| SJ elbow    |       40 |          0.9728 |     0.0004 |     0.0002 |      0      |             0.0005 |              0.0001 |                  0      |                   0      |                    0.0016 |                0.1  |
+| SJ elbow    |       50 |          0.9646 |     0.001  |     0.0007 |      0.0003 |             0.0009 |              0.0003 |                  0      |                   0      |                    0.0024 |                0.12 |
+| SJ elbow    |       60 |          0.9547 |     0.0017 |     0.0014 |      0.0005 |             0.0017 |              0.0003 |                  0      |                   0      |                    0.0037 |                0.16 |
+| SJ elbow    |       80 |          0.9296 |     0.0057 |     0.0047 |      0.0015 |             0.0056 |              0.0023 |                  0      |                   0      |                    0.008  |                0.26 |
+| SJ elbow    |      100 |          0.8977 |     0.0158 |     0.0136 |      0.0071 |             0.0162 |              0.0074 |                  0      |                   0      |                    0.0187 |                0.41 |
+| SJ elbow    |      120 |          0.8589 |     0.0372 |     0.0318 |      0.0169 |             0.0385 |              0.0166 |                 -0.0004 |                  -0.0002 |                    0.0399 |                0.57 |
+| SJ elbow    |      140 |          0.8145 |     0.0689 |     0.0602 |      0.0356 |             0.071  |              0.0345 |                 -0.0003 |                  -0.0007 |                    0.0726 |                0.74 |
+| SJ elbow    |      150 |          0.7906 |     0.0905 |     0.0756 |      0.0483 |             0.0889 |              0.0469 |                 -0.0002 |                  -0.0007 |                    0.0923 |                0.81 |
+| SJ elbow    |      160 |          0.766  |     0.1105 |     0.1024 |      0.0635 |             0.1079 |              0.0631 |                 -0.0008 |                  -0.001  |                    0.1115 |                0.87 |
+| MJ shoulder |        0 |          0.9933 |     0      |     0      |     -0.0001 |             0.0001 |             -0.0001 |                  0      |                   0      |                    0.0001 |                0.02 |
+| MJ shoulder |       20 |          0.987  |     0.0001 |     0.0001 |      0      |             0.0002 |             -0      |                  0      |                   0      |                    0.0006 |                0.04 |
+| MJ shoulder |       40 |          0.9766 |     0.0007 |     0.0005 |      0.0002 |             0.0008 |              0.0003 |                  0      |                   0      |                    0.0015 |                0.08 |
+| MJ shoulder |       50 |          0.9695 |     0.0011 |     0.001  |      0.0001 |             0.0014 |              0.0003 |                  0      |                   0      |                    0.0025 |                0.11 |
+| MJ shoulder |       60 |          0.961  |     0.0031 |     0.0028 |      0.0006 |             0.0029 |              0.0009 |                  0      |                   0      |                    0.0039 |                0.13 |
+| MJ shoulder |       80 |          0.9393 |     0.0077 |     0.0067 |      0.0019 |             0.007  |              0.0022 |                  0      |                   0      |                    0.0091 |                0.21 |
+| MJ shoulder |      100 |          0.911  |     0.0165 |     0.0144 |      0.0053 |             0.0154 |              0.0052 |                  0      |                  -0.0001 |                    0.0188 |                0.29 |
+| MJ shoulder |      120 |          0.8762 |     0.0318 |     0.0283 |      0.0129 |             0.0302 |              0.0128 |                 -0.0003 |                  -0.0008 |                    0.0339 |                0.4  |
+| MJ shoulder |      140 |          0.8356 |     0.0537 |     0.05   |      0.0274 |             0.0532 |              0.0286 |                 -0.0009 |                  -0.0008 |                    0.0559 |                0.51 |
+| MJ shoulder |      150 |          0.8141 |     0.0673 |     0.0639 |      0.0367 |             0.0671 |              0.0377 |                 -0.0009 |                  -0.0008 |                    0.0694 |                0.57 |
+| MJ shoulder |      160 |          0.7923 |     0.0827 |     0.0801 |      0.0477 |             0.0823 |              0.0486 |                 -0.0009 |                  -0.0008 |                    0.0847 |                0.61 |
+| MJ elbow    |        0 |          0.991  |    -0.0001 |    -0.0001 |     -0.0001 |            -0.0001 |             -0.0001 |                  0      |                   0      |                    0.0003 |                0.03 |
+| MJ elbow    |       20 |          0.9824 |     0      |    -0      |     -0.0002 |             0      |             -0.0002 |                  0      |                   0      |                    0.0009 |                0.05 |
+| MJ elbow    |       40 |          0.9686 |     0.0003 |     0      |     -0.0002 |             0.0001 |             -0.0001 |                  0      |                   0      |                    0.0021 |                0.07 |
+| MJ elbow    |       50 |          0.9592 |     0.001  |     0.0007 |      0.0001 |             0.001  |              0.0002 |                 -0.0002 |                  -0      |                    0.0032 |                0.1  |
+| MJ elbow    |       60 |          0.9478 |     0.0015 |     0.0007 |      0.0002 |             0.0015 |              0.0004 |                  0      |                  -0.0002 |                    0.005  |                0.12 |
+| MJ elbow    |       80 |          0.9203 |     0.0036 |     0.0037 |      0.0023 |             0.0046 |              0.002  |                  0      |                  -0.0005 |                    0.0094 |                0.16 |
+| MJ elbow    |      100 |          0.8825 |     0.0097 |     0.0083 |      0.0043 |             0.0092 |              0.0042 |                 -0.0011 |                  -0.0005 |                    0.0166 |                0.23 |
+| MJ elbow    |      120 |          0.8384 |     0.0208 |     0.0173 |      0.0114 |             0.0206 |              0.01   |                 -0.0015 |                  -0.0018 |                    0.0284 |                0.31 |
+| MJ elbow    |      140 |          0.7783 |     0.0426 |     0.0352 |      0.0233 |             0.043  |              0.0206 |                 -0.0015 |                  -0.0019 |                    0.0495 |                0.4  |
+| MJ elbow    |      150 |          0.7481 |     0.0563 |     0.0476 |      0.0317 |             0.0591 |              0.03   |                 -0.0015 |                  -0.0017 |                    0.0648 |                0.46 |
+| MJ elbow    |      160 |          0.7171 |     0.073  |     0.0666 |      0.0426 |             0.075  |              0.0424 |                 -0.0015 |                  -0.0017 |                    0.0829 |                0.51 |

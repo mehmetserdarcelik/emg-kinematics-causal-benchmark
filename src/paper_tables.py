@@ -79,7 +79,7 @@ def table3():
     lp = lf.pivot_table(index=idx, columns="arm", values="r2")
     lr = lf.pivot_table(index=idx, columns="arm", values="rmse_degs")
     lt = pd.read_csv(R / "latefusion" / "tests.csv")
-    lt = lt[(lt.comparison == "late_vs_kin") & (lt.W == "w25")].set_index(["condition", "joint", "delay_ms"])
+    lt = lt[lt.comparison == "late_vs_kin"].set_index(["W", "condition", "joint", "delay_ms"])
     recs = []
     for c, j, lab in J3:
         for d in (0, 50, 100, 150):
@@ -91,28 +91,33 @@ def table3():
             recs.append(dict(lab=lab, d=d, kin=np.median(k), rd=rd, l200=l200, l25=l25,
                              p_rd=wilcoxon(rd).pvalue if np.any(rd != 0) else 1.0,
                              rmse=f"{rm['kin'].median():.1f} → {rm['late_w25'].median():.1f}",
-                             t=lt.loc[(c, j, d)]))
+                             t=lt.loc[("w25", c, j, d)], t200=lt.loc[("w200", c, j, d)]))
     ph = holm(np.array([r["p_rd"] for r in recs]))
 
     def ci(x):
         _, lo, hi = boot_ci(np.asarray(x))
-        return f"{np.median(x):+.3f} [{lo:+.3f}, {hi:+.3f}]".replace("-", "−")
+        f = lambda v: "0.000" if abs(v) < 0.0005 else f"{v:+.3f}".replace("-", "−")  # noqa: E731
+        m = np.median(x)
+        mm = "0.0000" if abs(m) < 0.00005 else f"{m:+.4f}".replace("-", "−")
+        return f"{mm} [{f(lo)}, {f(hi)}]"
     out = []
     for r, q in zip(recs, ph):
         t = r["t"]
-        out.append(f"| {r['lab']} | {r['d']} | {r['kin']:.3f} | {ci(r['rd'])} ({int((r['rd'] > 0).sum())}/17) | "
-                   f"{ci(r['l200'])} | {ci(r['l25'])} ({int(t.wins)}/17, p_Holm {fp(t.p_holm)}) | {r['rmse']} | "
+        t2 = r["t200"]
+        out.append(f"| {r['lab']} | {r['d']} | {r['kin']:.3f} | {ci(r['rd'])} ({int((r['rd'] > 0).sum())}/17, "
+                   f"p_Holm {fp(q)}) | {ci(r['l200'])} ({int(t2.wins)}/17, p_Holm {fp(t2.p_holm)}) | "
+                   f"{ci(r['l25'])} ({int(t.wins)}/17, p_Holm {fp(t.p_holm)}) | {r['rmse']} | "
                    f"{'yes' if t.pos else 'no'} |")
     head = ("**Table 3.** Added value of EMG over delayed kinematic feedback for velocity prediction q̇(t + 100 ms). "
             "Kinematics-only model: ridge on [q, q̇](t − d). Residual fusion (pre-specified test): a linear EMG model "
             "added to the kinematic residuals (W = 200 ms). Late fusion: weighted combination of the kinematics-only "
             "and EMG-only TCN predictions, weight selected on the validation trial (W = 200 or 25 ms). ΔR²: median "
             "paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with "
-            "ΔR² > 0 and Holm-corrected Wilcoxon p (family of 12 tests per method and window). RMSE in °·s⁻¹. "
+            "ΔR² > 0 and Holm-corrected Wilcoxon p (residual fusion: 12 tests; late fusion: 36 tests over windows). RMSE in °·s⁻¹. "
             "Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05 (late fusion, W = 25 ms). Nominal delays d: the "
             "provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion "
-            "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with a TCN trained on EMG shifted "
-            "by 5 s, ΔR² −0.002 to −0.001.\n\n"
+            "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with TCNs trained on EMG shifted "
+            "by 5 s with the same window, ΔR² −0.002 to 0.000. Holm families for late fusion: 36 tests over the three windows.\n\n"
             "| Target | d (ms) | R² kinematics | ΔR² residual fusion, W = 200 | ΔR² late fusion, W = 200 | "
             "ΔR² late fusion, W = 25 | RMSE kinematics → late fusion (W = 25) | Meets criterion |\n"
             "|---|---|---|---|---|---|---|---|\n")

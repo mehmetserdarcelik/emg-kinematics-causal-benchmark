@@ -18,6 +18,8 @@ from data import JOINTS, MUSCLES, ROOT, SJ_MUSCLES, SUBJECTS  # noqa: E402
 OUT = ROOT / "results" / "latefusion"
 K = 10
 ARMS = ["w25", "w50", "w200"]
+RF_RAW = (253 + 20) * 20   # TCN receptive field (253 steps) + 200-ms window, in 2-kHz samples
+MIN_SAMPLES = 1000         # participant-condition pairs with < 10 s of clean data are omitted
 
 
 def run_subject(subject):
@@ -32,21 +34,32 @@ def run_subject(subject):
     for cond in ("SJ", "MJ"):
         J = JOINTS[cond]
         cols = [MUSCLES.index(m) for m in (SJ_MUSCLES if cond == "SJ" else MUSCLES)]
-        clean = {}
+        clean, clean_rf = {}, {}
         for t in d["trials"][cond]:
             m = dropout_mask(t.emg_raw[:, cols])
             b = (_rsum(m.astype(float), w) > 0).any(axis=1)[::DECIM][:len(t.q)]
             b = np.r_[b, np.repeat(b[-1], max(0, len(t.q) - len(b)))]
             clean[t.index] = ~b[:len(t.q) - K]
+            # whole receptive field (253 steps) + 200-ms window, dropouts marked over their full length;
+            # the first 2.73 s of each trial (incomplete context) are excluded
+            mf = dropout_mask(t.emg_raw[:, cols], causal=False)
+            br = (_rsum(mf.astype(float), RF_RAW) > 0).any(axis=1)[::DECIM][:len(t.q)]
+            br = np.r_[br, np.repeat(br[-1], max(0, len(t.q) - len(br)))]
+            br[:RF_RAW // DECIM] = True
+            clean_rf[t.index] = ~br[:len(t.q) - K]
         fold_of = {i: f for f, (test, _) in enumerate(FOLDS) for i in test}
         Y = np.vstack([targets(F, cond, i, ["q", "qd"])[K:] for i in range(10)])
         C = np.concatenate([clean[i] for i in range(10)])
+        CR = np.concatenate([clean_rf[i] for i in range(10)])
         for arm in ARMS:
             Yh = np.vstack([P[f"{cond}|{arm}|f{fold_of[i]}|t{i}"] for i in range(10)])
             for ti, tg in enumerate(["q", "qd"]):
                 for j, joint in enumerate(J):
                     c = ti * len(J) + j
-                    for subset, keep in (("all", np.ones(len(C), bool)), ("dropout_free", C)):
+                    for subset, keep in (("all", np.ones(len(C), bool)), ("dropout_free", C),
+                                         ("dropout_free_rf", CR)):
+                        if keep.sum() < MIN_SAMPLES:
+                            continue
                         y, yh = Y[keep, c], Yh[keep, c]
                         rows.append(dict(subject=subject, condition=cond, joint=joint, target=tg, arm=arm,
                                          subset=subset, frac=keep.mean(),
@@ -60,10 +73,15 @@ if __name__ == "__main__":
     df.to_csv(OUT / "window_dropout.csv", index=False)
     piv = df.pivot_table(index=["subset", "condition", "joint", "target", "subject"], columns="arm", values="r2")
     rows = []
+    rng = np.random.default_rng(0)
+    fr = df.drop_duplicates(["subject", "condition", "subset"]).set_index(["subset", "condition", "subject"]).frac
     for (sub, c, j, t), s in piv.groupby(level=[0, 1, 2, 3]):
         g = (s["w25"] - s["w200"]).dropna()
-        rows.append(dict(subset=sub, condition=c, joint=j, target=t, r2_w25=s["w25"].median(),
-                         r2_w200=s["w200"].median(), gain=g.median(), wins=int((g > 0).sum()),
+        bs = np.median(rng.choice(g.values, (10000, len(g))), axis=1)
+        f = fr.loc[(sub, c)]
+        rows.append(dict(subset=sub, condition=c, joint=j, target=t, n=len(g), kept_median=f.median(),
+                         kept_min=f.min(), r2_w25=s["w25"].median(), r2_w200=s["w200"].median(), gain=g.median(),
+                         ci_lo=np.percentile(bs, 2.5), ci_hi=np.percentile(bs, 97.5), wins=int((g > 0).sum()),
                          p=wilcoxon(g).pvalue))
     tests = pd.DataFrame(rows)
     tests.to_csv(OUT / "window_dropout_tests.csv", index=False)

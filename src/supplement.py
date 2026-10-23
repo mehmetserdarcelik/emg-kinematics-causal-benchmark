@@ -112,11 +112,11 @@ def s2():
     f0 = lambda x: f"{x:.0f}".replace("-", "−")  # noqa: E731
     return f"""# S2. Evidence that the provided kinematics are zero-phase filtered
 
-The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four independent indications support zero-phase (forward–backward) filtering. All values below are computed by `src/filter_evidence.py`.
+The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for the kinematics but not its direction [QuesadaIJRR2026]. Four supporting indications point to zero-phase (forward–backward) filtering. All values below are computed by `src/filter_evidence.py`.
 
 1. **Statement in the first preprint.** The first bioRxiv version of the source study (posted 12 January 2024, Section II.D.2) states that "all filters were bidirectionally applied" [QuesadaBioRxiv2024v1]. The sentence appears in the EMG subsection; later versions restrict the statement to EMG and do not specify the direction for the kinematics.
 2. **Spectral roll-off.** Marker noise is approximately white at high frequency, so after filtering the spectrum follows |H|² for a single pass and |H|⁴ for a forward–backward pass. The slope of the median power spectral density (Welch, 512-sample DPSS window, NW = 8) of the differenced SJ elbow angle (170 trials) was compared with 200 simulated white-noise signals filtered once or forward–backward with the stated filter (Table S2.1).
-3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor. Its spectrum is broadband (slope {tr[0]} to {tr[1]} dB/decade between 10 and 40 Hz across participants, compared with {f0(sl["diff2_20_40"][2])} dB/decade for the twice-differenced angle), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the peak of the cross-correlation between the provided velocity and the torque (±300 ms) showed the velocity *leading* the torque by a median of {abs(g("velocity_minus_torque_lag_ms_median")):.0f} ms (participant medians {lr[1].lstrip("−")}–{lr[0].lstrip("−")} ms; 17/17 participants). After an additional causal 3-Hz pass, the velocity lagged the torque by a median of {g("lag_after_extra_causal_pass_ms_median"):.0f} ms, confirming the sensitivity of the test.
+3. **Phase relative to the torque.** In SJ, the reference torque is dominated by the viscous interaction torque measured by the F/T sensor. Its spectrum is broadband (slope {tr[0]} to {tr[1]} dB/decade between 10 and 40 Hz across participants, compared with {f0(sl["diff2_20_40"][2])} dB/decade for the twice-differenced angle), indicating that it was not low-pass filtered at 3 Hz. A causal 3-Hz filter would delay the velocity by ≈ 140–146 ms (group delay at 0.3–1 Hz). Instead, the peak of the cross-correlation between the provided velocity and the torque (±300 ms) showed the velocity *leading* the torque by a median of {abs(g("velocity_minus_torque_lag_ms_median")):.0f} ms (participant medians {lr[1].lstrip("−")}–{lr[0].lstrip("−")} ms; 17/17 participants). Because the torque also contains terms computed from the provided kinematics, this test is not fully independent of them; however, in SJ the torque is dominated by the measured interaction torque. After an additional causal 3-Hz pass, the velocity lagged the torque by a median of {g("lag_after_extra_causal_pass_ms_median"):.0f} ms, confirming the sensitivity of the test.
 4. **Practice of the same laboratory.** Another study from the same group with the same exoskeleton explicitly filters position data with a zero-phase Butterworth filter [Verdel2023].
 
 **Table S2.1.** Spectral slope (dB/decade) of the differenced angle signal.
@@ -129,7 +129,7 @@ The source publication states a 4th-order, 3-Hz Butterworth low-pass filter for 
 
 **Future information in the provided kinematics.** For a forward–backward 4th-order 3-Hz Butterworth filter, the impulse response extends into the future. Its energy beyond +50, +100, +150 and +200 ms is {e[0]:.1f}, {e[1]:.1f}, {e[2]:.1f} and {e[3]:.1f} % (absolute weight: {w[0]:.1f}, {w[1]:.1f}, {w[2]:.1f} and {w[3]:.1f} %); 95 % of the absolute weight lies within ±{g("weight95_halfwidth_ms"):.0f} ms. Kinematic inputs delayed by a nominal d therefore still contain some information from after t − d, particularly for d ≤ 50 ms.
 
-Because raw kinematics are not available, the filtering cannot be undone, and re-filtering the provided signals causally would not remove the future information they already contain. The nominal delays are interpreted with this limitation (Sections 2.7 and 4.7).
+Because raw kinematics are not available, the filtering cannot be undone, and re-filtering the provided signals causally would not remove the future information they already contain. The nominal delays are interpreted with this limitation (Sections 2.7 and 4.6).
 """
 
 
@@ -157,7 +157,7 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 3. *Delays 50 and 100 ms* (TCN early fusion) were added after inspecting the d = 0 and 150 ms results.
 4. *Window sweep.* The full TCN sweep (W = 25–250 ms) and the ridge sweep with W = 25, 75, 150 and 250 ms were added after the control analyses, as were the diagnostic analyses in S5.
 5. *Equivalence test.* The TOST for EMG + torque versus torque (S4) was added after review.
-6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with a TCN trained on time-shifted EMG as the negative control; the same predictions were used to compare windows on dropout-free samples (Table S5.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added at this stage.
+6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were treated as one Holm family, an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
 """
 
 
@@ -275,9 +275,14 @@ def s5():
                      "Max burden in subgroup (%)": 100 * low.burden.max()})
     db = pd.DataFrame(rows)
     wd = pd.read_csv(R / "latefusion" / "window_dropout_tests.csv")
-    wd["subset"] = wd.subset.map({"all": "all samples", "dropout_free": "dropout-free"})
-    wd = lab(wd)[["Target", "subset", "r2_w25", "r2_w200", "gain", "wins"]].rename(columns={
-        "subset": "Samples", "r2_w25": "R² W=25", "r2_w200": "R² W=200", "gain": "Median gain", "wins": "Gain > 0 (n/17)"})
+    wd["subset"] = wd.subset.map({"all": "all samples", "dropout_free": "dropout-free (200 ms)",
+                                  "dropout_free_rf": "dropout-free (network context)"})
+    wd["kept"] = [f"{a:.2f} (≥ {b:.2f})" for a, b in zip(wd.kept_median, wd.kept_min)]
+    wd["ci"] = [f"[{a:.3f}, {b:.3f}]" for a, b in zip(wd.ci_lo, wd.ci_hi)]
+    wd["pos"] = [f"{w}/{n}" for w, n in zip(wd.wins, wd.n)]
+    wd = lab(wd)[["Target", "subset", "kept", "r2_w25", "r2_w200", "gain", "ci", "pos"]].rename(columns={
+        "subset": "Samples", "kept": "Fraction kept, median (min)", "r2_w25": "R² W=25", "r2_w200": "R² W=200",
+        "gain": "Median gain", "ci": "95 % CI", "pos": "Gain > 0 (n/N)"})
     br = pd.read_csv(R / "k_checks" / "K2_breakeven_v2.csv")
     br = br.assign(Target=[x[2] for c_, j_ in zip(br.condition, br.joint) for x in J3 if x[:2] == (c_, j_)])
     br = br[["Target", "emg_model", "W", "emg_r2", "d_star", "ci_lo", "ci_hi", "frac_beyond_160"]].rename(
@@ -309,7 +314,7 @@ def s5():
 
 {md(br, 3)}
 
-**Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain, evaluated on all samples and on samples without a dropout in any channel during the preceding 200 ms.
+**Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain with 95 % bootstrap CI, evaluated on all samples, on samples without a dropout in any channel during the preceding 200 ms, and on samples without a dropout during the whole network context (≈ 2.7 s; dropouts marked over their full length; first 2.7 s of each trial excluded). N: participants with at least 10 s of retained data.
 
 {md(wd)}
 """
@@ -362,10 +367,21 @@ def s6():
                      "Kinematics R²": x["kin"].median(),
                      "ΔR² W=25": (x["late_w25"] - x["kin"]).median(), "ΔR² W=50": (x["late_w50"] - x["kin"]).median(),
                      "ΔR² W=200": (x["late_w200"] - x["kin"]).median(),
-                     "ΔR² shifted EMG": (x["late_shift5_w200"] - x["kin"]).median(), "EMG weight (W=25)": wsel.median()})
+                     "ΔR² W=25, seed 1": (x["late_seed1_w25"] - x["kin"]).median(),
+                     "ΔR² W=200, seed 1": (x["late_seed1_w200"] - x["kin"]).median(),
+                     "ΔR² shifted EMG, W=25": (x["late_shift5_w25"] - x["kin"]).median(),
+                     "ΔR² shifted EMG, W=200": (x["late_shift5_w200"] - x["kin"]).median(),
+                     "ΔR² oracle weight, W=25": (x["oracle_w25"] - x["kin"]).median(),
+                     "EMG weight (W=25)": wsel.median()})
     lfs = pd.DataFrame(rows)
     lfs["o"] = lfs.Target.map({t[2]: i for i, t in enumerate(J3)})
     lfs = lfs.sort_values(["o", "d (ms)"]).drop(columns="o")
+    cr = pd.read_csv(R / "latefusion" / "crossings.csv")
+    cr = cr.assign(Target=[x[2] for c_, j_ in zip(cr.condition, cr.joint) for x in J3 if x[:2] == (c_, j_)],
+                   W=cr.arm.str.extract(r"w(\d+)$")[0].astype(int),
+                   Seed=[1 if "seed1" in a else 0 for a in cr.arm])
+    cr = cr[["Target", "W", "Seed", "d001", "ci_lo", "ci_hi"]].rename(columns={"d001": "d₀.₀₁ (ms)", "ci_lo": "CI low",
+                                                                      "ci_hi": "CI high"})
     k3 = pd.read_csv(R / "k_checks" / "K3B_tcn.csv")
     k3 = k3.assign(Target=[x[2] for c_, j_ in zip(k3.condition, k3.joint) for x in J3 if x[:2] == (c_, j_)])
     k3 = k3[["W", "d", "Target", "median", "wins", "p_holm", "pos"]].rename(columns={
@@ -393,7 +409,11 @@ def s6():
 
 {md(k3, 4)}
 
-**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model, median paired gain for W = 25, 50 and 200 ms and for the time-shifted-EMG control (W = 200 ms), and median EMG weight selected on the validation trials (W = 25 ms).
+**Table S6.7.** Nominal delay at which the median late-fusion gain reached 0.01 (linear interpolation between tested delays) with 95 % participant-level bootstrap CI (10 000 resamples).
+
+{md(cr, 1)}
+
+**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (same window), and with the weight selected on the test trials (oracle upper bound, W = 25 ms); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
 
 {md(lfs, 4)}
 """

@@ -4,7 +4,7 @@
 
 Code and derived results for the paper
 
-> M. S. Çelik, *When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset*, submitted to Computers in Biology and Medicine (2026).
+> M. S. Çelik, *When does surface EMG add value for decoding joint kinematics? An offline benchmark with causal EMG decoding on an open upper-limb exoskeleton dataset*, submitted to Computers in Biology and Medicine (2026).
 
 The study decodes elbow and shoulder joint angle and angular velocity from raw surface EMG with a strictly causal pipeline, using the open dataset of Quesada et al. (17 participants, random single- and multi-joint movements against a viscous exoskeleton field; https://doi.org/10.5281/zenodo.11209324). It asks how well EMG decodes the kinematics, whether EMG carries information beyond the joint torque, and when EMG adds value over measured kinematics with a delay.
 
