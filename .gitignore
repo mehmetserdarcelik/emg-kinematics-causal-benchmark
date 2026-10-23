@@ -1,0 +1,7 @@
+# raw data (download with src/download.py) and caches
+data/
+cache/
+results/extra/wsweep_parts/
+__pycache__/
+*.pyc
+.pytest_cache/

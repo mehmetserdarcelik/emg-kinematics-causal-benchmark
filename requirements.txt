@@ -1,0 +1,8 @@
+# Versions used for the paper (Python 3.12). Newer versions are expected to work.
+numpy==2.4.6
+scipy==1.17.1
+pandas==3.0.5
+matplotlib==3.11.0
+tabulate==0.10.0
+torch==2.5.1        # only needed for model training (GPU recommended)
+pytest              # optional, for tests/

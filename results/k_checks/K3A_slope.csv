@@ -1,0 +1,4 @@
+condition,joint,d0_W50,d0_W100,d0_W200,b,b_ci_lo,b_ci_hi,n_boot_valid
+SJ,elbow_flexion,-inf,-inf,-inf,,,,0
+MJ,shoulder_elv,-inf,-inf,-inf,,,,0
+MJ,elbow_flexion,-inf,-inf,-inf,,,,0
