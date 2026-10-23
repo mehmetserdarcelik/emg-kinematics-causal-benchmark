@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below, together with the dataset of Quesada et al."
+title: "Code and derived results: When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset"
+type: software
+authors:
+  - family-names: "Çelik"
+    given-names: "Mehmet Serdar"
+    affiliation: "Ondokuz Mayıs University"
+version: "1.0.0"
+doi: "10.5281/zenodo.23590654"
+license: MIT
+repository-code: "https://github.com/mehmetserdarcelik/emg-kinematics-causal-benchmark"
+keywords:
+  - surface electromyography
+  - joint kinematics
+  - temporal convolutional network
+  - exoskeleton
+  - causal decoding
+references:
+  - type: dataset
+    title: "A dataset for the investigation of upper limb torque prediction from EMG signals"
+    authors:
+      - family-names: "Quesada"
+        given-names: "Lucas"
+      - family-names: "Verdel"
+        given-names: "Dorian"
+      - family-names: "Bruneau"
+        given-names: "Olivier"
+      - family-names: "Berret"
+        given-names: "Bastien"
+      - family-names: "Amorim"
+        given-names: "Michel-Ange"
+      - family-names: "Vignais"
+        given-names: "Nicolas"
+    year: 2024
+    publisher:
+      name: "Zenodo"
+    doi: "10.5281/zenodo.11209324"

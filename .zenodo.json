@@ -1,0 +1,28 @@
+{
+  "title": "Code and derived results: When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset",
+  "upload_type": "software",
+  "description": "Code and derived results accompanying the manuscript \"When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset\" (submitted to Biomedical Signal Processing and Control). Causal EMG feature extraction, ridge/LSTM/TCN decoders, all analyses and statistics, and scripts that regenerate all tables, figures and supplementary tables of the paper. Code: MIT licence. Derived results: CC BY-SA 4.0 (licence of the underlying dataset).",
+  "creators": [
+    {
+      "name": "Çelik, Mehmet Serdar",
+      "affiliation": "Ondokuz Mayıs University"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "surface electromyography",
+    "joint kinematics",
+    "temporal convolutional network",
+    "exoskeleton",
+    "causal decoding",
+    "open data"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.11209324",
+      "relation": "isDerivedFrom",
+      "scheme": "doi",
+      "resource_type": "dataset"
+    }
+  ]
+}

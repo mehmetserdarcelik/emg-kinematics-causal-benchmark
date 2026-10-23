@@ -1,5 +1,7 @@
 # When does surface EMG add value for decoding joint kinematics?
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23590654.svg)](https://doi.org/10.5281/zenodo.23590654)
+
 Code and derived results for the paper
 
 > M. S. Çelik, *When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset*, submitted to Biomedical Signal Processing and Control (2026).
@@ -63,6 +65,9 @@ Code: MIT. Derived results (`results/`, `paper/`): CC BY-SA 4.0, the licence of 
 
 ## Citation
 
-If you use this code, please cite the paper (details will be added on publication) and the dataset:
+If you use this code, please cite the paper (details will be added on publication), this archive and the dataset:
+
+M. S. Çelik, *Code and derived results: When does surface EMG add value for decoding joint kinematics?*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23590654 (all versions; v1.0.0, used for the paper: https://doi.org/10.5281/zenodo.23590655)
+
 
 L. Quesada, D. Verdel, O. Bruneau, B. Berret, M.-A. Amorim, N. Vignais, *A dataset for the investigation of upper limb torque prediction from EMG signals*, Zenodo, 2024. https://doi.org/10.5281/zenodo.11209324
