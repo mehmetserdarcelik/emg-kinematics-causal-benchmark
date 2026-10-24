@@ -25,9 +25,15 @@ MODEL = {"ridge25": "Ridge (2.5 s)", "lstm": "LSTM", "tcn": "TCN", "tcn_aux": "T
 
 def md(df, nd=3):
     df = df.copy()
+    def fmt(x):
+        if pd.isna(x):
+            return "—"
+        if np.isinf(x):
+            return "> 160"
+        return f"{x:.{nd}f}" if round(x, nd) != 0 else f"{0:.{nd}f}"   # no "-0.000"
     for c in df.columns:
-        if df[c].dtype.kind == "f":
-            df[c] = df[c].map(lambda x: "—" if pd.isna(x) else ("> 160" if np.isinf(x) else f"{x:.{nd}f}"))
+        if df[c].dtype.kind == "f" or df[c].map(lambda x: isinstance(x, float)).any():
+            df[c] = df[c].map(lambda x: fmt(x) if isinstance(x, (float, np.floating)) else x)
     return df.to_markdown(index=False)
 
 
@@ -157,7 +163,7 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 3. *Delays 50 and 100 ms* (TCN early fusion) were added after inspecting the d = 0 and 150 ms results.
 4. *Window sweep.* The full TCN sweep (W = 25–250 ms) and the ridge sweep with W = 25, 75, 150 and 250 ms were added after the control analyses, as were the diagnostic analyses in S5.
 5. *Equivalence test.* The TOST for EMG + torque versus torque (S4) was added after review.
-6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were treated as one Holm family, an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
+6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were combined in the Holm correction (per seed and comparison type), an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). After a third round, late fusion with a kinematics-only TCN (ensemble control) and an additional causal pass on the kinematic inputs were added (Tables S6.6, S6.8). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
 """
 
 
