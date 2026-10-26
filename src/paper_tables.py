@@ -114,7 +114,7 @@ def table3():
             "and EMG-only TCN predictions, weight selected on the validation trial (W = 200 or 25 ms). ΔR²: median "
             "paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with "
             "ΔR² > 0 and Holm-corrected Wilcoxon p (residual fusion: 12 tests; late fusion, seed 0: 36 tests over the three windows and four delays per comparison type). RMSE in °·s⁻¹. "
-            "Criterion met (median ΔR² ≥ 0.01 and p_Holm < 0.05): R, residual fusion (pre-specified); L, late fusion with W = 25 ms (exploratory). Nominal delays d: the "
+            "Criterion met (median ΔR² ≥ 0.01 and p_Holm < 0.05): R, residual fusion (pre-specified); L, late fusion with W = 25 ms (exploratory; late fusion with W = 200 ms also met the criterion at d = 150 ms for all three targets). Nominal delays d: the "
             "provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion "
             "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with TCNs trained on EMG shifted "
             "by 5 s with the same window, ΔR² −0.002 to 0.000; late fusion with a kinematics-only TCN instead of EMG (ensemble control), ΔR² −0.001 to +0.001.\n\n"
