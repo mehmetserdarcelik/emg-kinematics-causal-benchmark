@@ -43,14 +43,14 @@ This runs the complete pipeline in the order listed in `reproduce.py`. The model
 | `data.py`, `emgfeat.py`, `featw.py` | 2.1–2.3 | data cache, causal features |
 | `run_v2.py` | 2.4–2.6, 3.1–3.2 | `results/v2/` |
 | `run_loso_v2.py`, `run_extra.py loso_seeds` | 2.5, 3.3 | `results/v2_loso/`, `results/extra/loso_seeds_*` |
-| `run_horizon.py`, `analysis_cpu.py` | 2.7, 3.4, 3.6 | `results/horizon/`, `results/extra/cpu_*` |
+| `run_horizon.py`, `analysis_cpu.py` | 2.7, 3.4, 3.7 | `results/horizon/`, `results/extra/cpu_*` |
 | `k_checks.py` (`K_SWEEP=1` for all windows) | 2.7–2.8, 3.5 | `results/k_checks/`, `results/k_checks_sweep/` |
 | `run_extra.py hbase2/hbase3/hbase4/k3b` | 2.7, 3.5 (early fusion) | `results/extra/` |
 | `run_latefusion.py` and `run_latefusion.py round2` (GPU), `latefusion.py` | 2.7, 3.5 (late fusion) | `results/latefusion/` |
 | `run_kintcn.py` and `run_kintcn.py nonoise` (GPU) | 2.7, 3.5 (ensemble control) | `results/latefusion/kintcn_*.npz`, `kintcn0_*.npz` |
-| `causal_kin_check.py` | 2.7, 3.5 (causally filtered kinematics) | `results/latefusion/causal_kin*.csv` |
-| `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py`, `window_dropout_check.py` | 2.8, 3.5 | `results/extra/`, `results/latefusion/` |
-| `filter_evidence.py`, `timing.py` | 2.2, 3.6, Supplementary S2 | `results/extra/` |
+| `causal_kin_check.py` | 2.7, 3.5 (additional causal filtering) | `results/latefusion/causal_kin*.csv` |
+| `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py`, `window_dropout_check.py` | 2.8, 3.6 | `results/extra/`, `results/latefusion/` |
+| `filter_evidence.py`, `timing.py`, `time_audit.py` | 2.2, 3.7, Supplementary S1–S2 | `results/extra/` |
 | `aggregate.py`, `stats.py`, `k_analysis.py`, `k2_breakeven.py`, `tost.py` | 2.9 | summary tables in `results/` |
 | `paper_tables.py`, `paper_figures.py`, `supplement.py` | Tables 1–3, Figs. 1–6, Supplementary | `paper/` |
 

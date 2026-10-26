@@ -86,7 +86,7 @@ def s1():
     musc = k.groupby(["cond", "muscle"]).sec.sum().sort_values(ascending=False).head(6).round(1).reset_index()
     txt = f"""# S1. Data audit
 
-All checks used the files of Zenodo record 11209324 (MD5 of the archive `ea2dd9d26ec61a5870b6455b8abe5918`). Each participant contributed ten SJ and ten MJ trials of ≈ 29.4 s; raw EMG (2 kHz) and kinematics/torque (100 Hz) had consistent lengths (ratio 20.0) and no missing values.
+All checks used the files of Zenodo record 11209324 (MD5 of the archive `ea2dd9d26ec61a5870b6455b8abe5918`). Each participant contributed ten SJ and ten MJ trials of ≈ 29.4 s; raw EMG (2 kHz) and kinematics/torque (100 Hz) had no missing values. In all 340 trials, the time stamps of both streams started at 0 and were uniformly spaced, every 20th EMG time stamp coincided with a kinematic time stamp (maximum difference < 10⁻¹⁴ s), the EMG contained exactly 20 additional samples (10 ms) at the end, which were discarded, and the angle, velocity, torque and filtered-EMG files shared one time base (`src/time_audit.py`).
 
 **S1.1 Velocity units.** For each trial, the provided angular velocity was regressed on the numerical derivative of the provided angle (central differences × 100 Hz). Ratio = slope of derivative on provided velocity (Table S1.1). The MJ ratios of ≈ 100 indicate rad·sample⁻¹ units; MJ velocities were multiplied by 100.
 

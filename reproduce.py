@@ -34,6 +34,7 @@ CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
     ["src/analysis_cpu.py"],
     ["src/check_lag.py"],
     ["src/dropouts.py"],
+    ["src/time_audit.py"],
     ["src/latefusion.py"],
     ["src/causal_kin_check.py"],
     ["src/window_dropout_check.py"],
