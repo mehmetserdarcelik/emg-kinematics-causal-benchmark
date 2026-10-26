@@ -1,13 +1,13 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite it as below, together with the dataset of Quesada et al."
-title: "Code and derived results: When does surface EMG add value for decoding joint kinematics? A causal benchmark on an open upper-limb exoskeleton dataset"
+title: "Code and derived results: When does surface EMG add value for decoding joint kinematics? An offline benchmark with causal EMG decoding on an open upper-limb exoskeleton dataset"
 type: software
 authors:
   - family-names: "Çelik"
     given-names: "Mehmet Serdar"
     affiliation: "Ondokuz Mayıs University"
     orcid: "https://orcid.org/0000-0003-2050-6378"
-version: "1.0.0"
+version: "1.1.0"
 doi: "10.5281/zenodo.23590654"
 license: MIT
 repository-code: "https://github.com/mehmetserdarcelik/emg-kinematics-causal-benchmark"

@@ -26,6 +26,7 @@ TRAIN = [  # GPU; per-participant outputs are skipped if they already exist
     ["src/run_latefusion.py"],
     ["src/run_latefusion.py", "round2"],
     ["src/run_kintcn.py"],
+    ["src/run_kintcn.py", "nonoise"],
 ]
 CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
     ["src/k_checks.py"],
@@ -40,6 +41,8 @@ CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
     ["src/timing.py"],
 ]
 SUMMARY = [  # CPU, from the per-participant results in results/
+    ["src/run_v2.py", "summary"],
+    ["src/latefusion.py", "summary"],
     ["src/aggregate.py"],
     ["src/stats.py"],
     ["src/k_analysis.py"],

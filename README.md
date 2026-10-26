@@ -47,7 +47,7 @@ This runs the complete pipeline in the order listed in `reproduce.py`. The model
 | `k_checks.py` (`K_SWEEP=1` for all windows) | 2.7–2.8, 3.5 | `results/k_checks/`, `results/k_checks_sweep/` |
 | `run_extra.py hbase2/hbase3/hbase4/k3b` | 2.7, 3.5 (early fusion) | `results/extra/` |
 | `run_latefusion.py` and `run_latefusion.py round2` (GPU), `latefusion.py` | 2.7, 3.5 (late fusion) | `results/latefusion/` |
-| `run_kintcn.py` (GPU) | 2.7, 3.5 (ensemble control) | `results/latefusion/kintcn_*.npz` |
+| `run_kintcn.py` and `run_kintcn.py nonoise` (GPU) | 2.7, 3.5 (ensemble control) | `results/latefusion/kintcn_*.npz`, `kintcn0_*.npz` |
 | `causal_kin_check.py` | 2.7, 3.5 (causally filtered kinematics) | `results/latefusion/causal_kin*.csv` |
 | `run_extra.py wsweep`, `check_lag.py`, `check_w200_path.py`, `dropouts.py`, `window_dropout_check.py` | 2.8, 3.5 | `results/extra/`, `results/latefusion/` |
 | `filter_evidence.py`, `timing.py` | 2.2, 3.6, Supplementary S2 | `results/extra/` |
@@ -61,7 +61,7 @@ The data audit (paper Section 2.2 and Supplementary S1) found issues that are ha
 - **MJ angular velocities** are provided in rad·sample⁻¹ (100 Hz). `src/data.py` multiplies them by 100.
 - **MVC files** contain processed envelopes, not raw EMG. MVC normalisation is therefore not used.
 - **Wireless sensor dropouts** (runs of identical raw values) are detected online and handled causally (`src/emgfeat.py`).
-- **The provided kinematics are zero-phase filtered** (Supplementary S2). Delayed kinematic inputs therefore still contain some information from the future, and the nominal delays should be interpreted with this in mind.
+- **The provided kinematics are very likely zero-phase filtered** (Supplementary S2). Delayed kinematic inputs therefore still contain some information from the future, and the nominal delays should be interpreted with this in mind.
 
 ## Licence
 
@@ -71,7 +71,7 @@ Code: MIT. Derived results (`results/`, `paper/`): CC BY-SA 4.0, the licence of 
 
 If you use this code, please cite the paper (details will be added on publication), this archive and the dataset:
 
-M. S. Çelik, *Code and derived results: When does surface EMG add value for decoding joint kinematics?*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23590654 (all versions; v1.0.0, used for the paper: https://doi.org/10.5281/zenodo.23590655)
+M. S. Çelik, *Code and derived results: When does surface EMG add value for decoding joint kinematics?*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23590654 (all versions; the version used for the paper is v1.1.0)
 
 
 L. Quesada, D. Verdel, O. Bruneau, B. Berret, M.-A. Amorim, N. Vignais, *A dataset for the investigation of upper limb torque prediction from EMG signals*, Zenodo, 2024. https://doi.org/10.5281/zenodo.11209324

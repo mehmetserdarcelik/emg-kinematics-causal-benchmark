@@ -163,7 +163,7 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 3. *Delays 50 and 100 ms* (TCN early fusion) were added after inspecting the d = 0 and 150 ms results.
 4. *Window sweep.* The full TCN sweep (W = 25–250 ms) and the ridge sweep with W = 25, 75, 150 and 250 ms were added after the control analyses, as were the diagnostic analyses in S5.
 5. *Equivalence test.* The TOST for EMG + torque versus torque (S4) was added after review.
-6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were combined in the Holm correction (per seed and comparison type), an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). After a third round, late fusion with a kinematics-only TCN (ensemble control) and an additional causal pass on the kinematic inputs were added (Tables S6.6, S6.8). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
+6. *Late fusion and dropout-free evaluation.* After internal review pointed out that linear residual fusion underestimates the EMG contribution, EMG-only TCNs (W = 25, 50 and 200 ms; seed 0) were retrained with saved validation and test predictions and fused with the kinematics-only ridge (Table S6.6), with TCNs trained on time-shifted EMG as negative controls; after a second internal review round, the shifted-EMG control was matched to the 25-ms window, the W = 25 and 200 ms analyses were repeated with a second seed, the three windows were combined in the Holm correction (per seed and comparison type), an oracle upper bound was computed, and the dropout-free comparison was extended to the whole network context (Tables S5.7, S6.6, S6.7). After a third round, late fusion with a kinematics-only TCN (ensemble control) and an additional causal pass on the kinematic inputs were added (Tables S6.6, S6.8). After a fourth round, the kinematics-only TCN was also trained without input-noise augmentation (Table S6.6), and the K4 bootstrap was increased from 5 000 to 10 000 resamples (no change in the reported intervals). The seed-matched paired tests (S4.2) and the dense ridge baseline were also added after internal review.
 """
 
 
@@ -316,7 +316,7 @@ def s5():
 
 {md(db)}
 
-**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160").
+**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160"). The kinematics-only R² at delay d is evaluated on t ≥ d, whereas the EMG-only R² uses all samples; recomputed on the common samples with the late-fusion EMG-only TCNs (W = 25, 50 and 200 ms), d* was 1–3 ms shorter (MJ elbow, W = 50 ms: 159 ms instead of > 160 ms).
 
 {md(br, 3)}
 
@@ -379,6 +379,7 @@ def s6():
                      "ΔR² shifted EMG, W=200": (x["late_shift5_w200"] - x["kin"]).median(),
                      "ΔR² oracle weight, W=25": (x["oracle_w25"] - x["kin"]).median(),
                      "ΔR² kinematics-only TCN": (x["late_kintcn"] - x["kin"]).median() if "late_kintcn" in x else np.nan,
+                     "ΔR² kinematics-only TCN, no input noise": (x["late_kintcn0"] - x["kin"]).median() if "late_kintcn0" in x else np.nan,
                      "EMG weight (W=25)": wsel.median()})
     lfs = pd.DataFrame(rows)
     lfs["o"] = lfs.Target.map({t[2]: i for i, t in enumerate(J3)})
@@ -392,7 +393,16 @@ def s6():
     ck = pd.read_csv(R / "latefusion" / "causal_kin_summary.csv")
     ck = ck.assign(Target=[x[2] for c_, j_ in zip(ck.condition, ck.joint) for x in J3 if x[:2] == (c_, j_)])
     ck["o"] = ck.Target.map({t[2]: i for i, t in enumerate(J3)})
-    ck = ck.sort_values(["o", "delay_ms"])[["Target", "delay_ms", "kin_causal", "late_causal_w25", "gain", "wins"]].rename(
+    # participant-level bootstrap CI (10 000)
+    cks = pd.read_csv(R / "latefusion" / "causal_kin.csv").pivot_table(
+        index=["condition", "joint", "delay_ms", "subject"], columns="arm", values="r2")
+    gk = (cks["late_causal_w25"] - cks["kin_causal"]).groupby(level=[0, 1, 2])
+    rng_ck = np.random.default_rng(0)
+    ci = {k: np.percentile(np.median(rng_ck.choice(v.values, (10000, len(v))), axis=1), [2.5, 97.5]) for k, v in gk}
+    ck["CI low"] = [ci[(c_, j_, d_)][0] for c_, j_, d_ in zip(ck.condition, ck.joint, ck.delay_ms)]
+    ck["CI high"] = [ci[(c_, j_, d_)][1] for c_, j_, d_ in zip(ck.condition, ck.joint, ck.delay_ms)]
+    ck = ck.sort_values(["o", "delay_ms"])[["Target", "delay_ms", "kin_causal", "late_causal_w25", "gain", "CI low",
+                                            "CI high", "wins"]].rename(
         columns={"delay_ms": "d (ms)", "kin_causal": "Kinematics R² (causal pass)", "late_causal_w25": "Late fusion R² (W=25)",
                  "gain": "Median ΔR²", "wins": "ΔR² > 0 (n/17)"})
     k3 = pd.read_csv(R / "k_checks" / "K3B_tcn.csv")
@@ -422,7 +432,7 @@ def s6():
 
 {md(k3, 4)}
 
-**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (W = 25 and 200 ms; the W = 50 ms arm is compared with the 25-ms control in Table S6.6's tests), with the weight selected on the test trials (oracle upper bound, W = 25 ms), and with a kinematics-only TCN instead of the EMG-only TCN (ensemble control; d = 100 and 150 ms only); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
+**Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (W = 25 and 200 ms; in the paired tests, the W = 50 ms arm was compared with the 25-ms control and the second-seed arms with the seed-0 controls), with the weight selected on the test trials (oracle upper bound, W = 25 ms), and with a kinematics-only TCN instead of the EMG-only TCN (ensemble control; d = 100 and 150 ms only; trained like the EMG models with input-noise augmentation σ = 0.1, or without it); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
 
 {md(lfs, 4)}
 
@@ -430,7 +440,7 @@ def s6():
 
 {md(cr, 1)}
 
-**Table S6.8.** Kinematics-only ridge and late fusion (EMG-only TCN, W = 25 ms) for q̇(t + 100 ms) when the provided kinematic inputs were passed once more through the stated 3-Hz Butterworth filter in the forward direction only (approximating causally filtered kinematic feedback; the future information already in the provided signals is not removed). Medians across participants; target unchanged.
+**Table S6.8.** Kinematics-only ridge and late fusion (EMG-only TCN, W = 25 ms) for q̇(t + 100 ms) when the provided kinematic inputs were passed once more through the stated 3-Hz Butterworth filter in the forward direction only (approximating causally filtered kinematic feedback; the future information already in the provided signals is not removed). Medians across participants with 95 % participant-level bootstrap CI of the median gain (10 000 resamples); target unchanged. This sensitivity analysis changes both the phase and the magnitude response of the inputs and does not identify an equivalent physical feedback delay.
 
 {md(ck, 4)}
 """

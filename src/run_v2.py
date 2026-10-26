@@ -118,12 +118,12 @@ def ridge_fp(Xtr, Ytr, Xva, Yva, Xte):
     return [((add_history(x, RIDGE_LAGS) - mx) / sx) @ W * sy + my for x in Xte]
 
 
-def deep_fp(kind, seed, Xtr, Ytr, Xva, Yva, Xte):
+def deep_fp(kind, seed, Xtr, Ytr, Xva, Yva, Xte, noise=0.1):
     from deep import predict, train
     B = np.vstack(Ytr)
     my, sy = B.mean(0), B.std(0) + 1e-8
     m = train(kind, Xtr, [(y - my) / sy for y in Ytr], Xva, [(y - my) / sy for y in Yva],
-              seed=seed)
+              seed=seed, noise=noise)
     return [p * sy + my for p in predict(m, Xte)]
 
 
@@ -202,6 +202,9 @@ def summarize():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["summary"]:   # summary only: metrics_S*.csv -> summary_by_subject.csv (no data needed)
+        summarize()
+        sys.exit()
     workers = int(sys.argv[1]) if len(sys.argv) > 1 else 4
     names = sys.argv[2].split(",") if len(sys.argv) > 2 else list(MODELS)
     OUT.mkdir(parents=True, exist_ok=True)

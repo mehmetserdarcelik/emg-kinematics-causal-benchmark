@@ -22,6 +22,7 @@ K = 10
 DELAYS = [0, 20, 40, 50, 60, 80, 100, 120, 140, 150, 160]
 ARMS = ["w25", "w50", "w200", "shift5_w200"]
 ARMS2 = ["shift5_w25", "seed1_w25", "seed1_w200"]   # matched control and second seed (preds2_SXX.npz)
+KT_ARMS = ["kintcn", "kintcn0"]
 GRID = np.round(np.arange(0, 1.0001, 0.05), 2)
 
 
@@ -41,8 +42,11 @@ def run_subject(subject):
     if p2.exists():
         P.update(dict(np.load(p2)))
         arms += ARMS2
-    pk = OUT / f"kintcn_{subject}.npz"
-    KT = dict(np.load(pk)) if pk.exists() else {}   # ensemble control: kinematics-only TCN
+    KT = {}   # ensemble control (kinematics-only TCN): kintcn (input noise 0.1), kintcn0 (no input noise)
+    for kt in KT_ARMS:
+        pk = OUT / f"{kt}_{subject}.npz"
+        if pk.exists():
+            KT.update(dict(np.load(pk)))
     F = features(subject)
     rows = []
     for cond in ("SJ", "MJ"):
@@ -59,17 +63,17 @@ def run_subject(subject):
             y = {i: qd[i][idx[i] + K] for i in range(10)}
             inc = {i: y[i] - ref[i] for i in range(10)}
             test_out = {}   # arm -> {trial: (y, yh)}, weights
-            weights = {a: [] for a in list(arms) + ["kintcn"]}
+            weights = {a: [] for a in list(arms) + KT_ARMS}
             for f, (test, val) in enumerate(FOLDS):
                 tr = [i for i in range(10) if i not in test and i != val]
                 kin = Ridge().fit(_stack(Xk, tr), _stack(inc, tr), Xk[val], inc[val], A_KIN)
                 kp = {i: ref[i] + kin.predict(Xk[i]) for i in (val, *test)}
                 for i in test:
                     test_out.setdefault("kin", {})[i] = (y[i], kp[i])
-                arm_list = list(arms) + (["kintcn"] if f"{cond}|kintcn_d{d_ms}|f{f}|t{val}" in KT else [])
+                arm_list = list(arms) + [kt for kt in KT_ARMS if f"{cond}|{kt}_d{d_ms}|f{f}|t{val}" in KT]
                 for arm in arm_list:
-                    if arm == "kintcn":
-                        ep = {i: KT[f"{cond}|kintcn_d{d_ms}|f{f}|t{i}"][:, nJ:2 * nJ] for i in (val, *test)}
+                    if arm in KT_ARMS:
+                        ep = {i: KT[f"{cond}|{arm}_d{d_ms}|f{f}|t{i}"][:, nJ:2 * nJ] for i in (val, *test)}
                     else:
                         ep = {i: P[f"{cond}|{arm}|f{f}|t{i}"][d:, nJ:2 * nJ] for i in (val, *test)}
                     a = np.array([GRID[int(np.argmin([np.mean((y[val][:, j] - ((1 - g) * kp[val][:, j]
@@ -168,9 +172,12 @@ def summarise(df):
 
 
 if __name__ == "__main__":
-    with ProcessPoolExecutor(max_workers=2) as ex:
-        rows = [r for rs in ex.map(run_subject, SUBJECTS) for r in rs]
-    df = pd.DataFrame(rows)
+    if sys.argv[1:] == ["summary"]:   # summary only: from the per-participant S*.csv files (no data needed)
+        df = pd.concat([pd.read_csv(OUT / f"{s}.csv") for s in SUBJECTS], ignore_index=True)
+    else:
+        with ProcessPoolExecutor(max_workers=2) as ex:
+            rows = [r for rs in ex.map(run_subject, SUBJECTS) for r in rs]
+        df = pd.DataFrame(rows)
     n = df.subject.nunique()
     summ, tests = summarise(df)
     summ.to_csv(OUT / "summary.csv", index=False)

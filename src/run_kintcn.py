@@ -1,10 +1,12 @@
 """Kinematics-only TCN predictions for the ensemble control of late fusion (GPU).
 
 Input [q, qd](t - d), target increment y(t + 100 ms) - y(t - d) (same design as run_extra.run_hbase2 'kin_inc', seed 0);
-absolute predictions (y(t - d) + increment) are saved for the validation and test trials of every fold. d in {100, 150} ms.
-This TCN is fused with the ridge in place of the EMG-only TCN: a gain of ~0 shows that the EMG gain is not an ensemble effect.
+absolute predictions (y(t - d) + increment) are saved for the validation and test trials of every fold.
+d in {100, 150} ms. This TCN is fused with the ridge in place of the EMG-only TCN; its gain shows how much of the EMG
+gain could arise from combining two models (an ensemble effect).
 Output: results/latefusion/kintcn_SXX.npz, key "{cond}|kintcn_d{d}|f{fold}|t{trial}" -> (T - d - 10, 2J) [q, qd].
-Usage: python src/run_kintcn.py
+Usage: python src/run_kintcn.py [nonoise]
+nonoise: without input-noise augmentation (sigma = 0 instead of the 0.1 chosen for EMG) -> kintcn0_SXX.npz, arm "kintcn0".
 """
 from __future__ import annotations
 
@@ -22,6 +24,8 @@ from run_v2 import FOLDS, deep_fp, features  # noqa: E402
 OUT = ROOT / "results" / "latefusion"
 K = 10
 DELAYS = [100, 150]
+NONOISE = "nonoise" in sys.argv[1:]
+ARM = "kintcn0" if NONOISE else "kintcn"
 
 
 def _norm(Xall, tr):
@@ -31,7 +35,7 @@ def _norm(Xall, tr):
 
 
 def run_subject(subject):
-    out = OUT / f"kintcn_{subject}.npz"
+    out = OUT / f"{ARM}_{subject}.npz"
     if out.exists():
         return subject, "skipped"
     t0 = time.time()
@@ -51,9 +55,9 @@ def run_subject(subject):
                 inc = {i: B[i][2] - B[i][1] for i in range(10)}
                 ids = [val, *test]
                 P = deep_fp("tcn", 0, [Xn[i] for i in tr], [inc[i] for i in tr],
-                            [Xn[val]], [inc[val]], [Xn[i] for i in ids])
+                            [Xn[val]], [inc[val]], [Xn[i] for i in ids], noise=0.0 if NONOISE else 0.1)
                 for i, p in zip(ids, P):
-                    store[f"{cond}|kintcn_d{d_ms}|f{f}|t{i}"] = (B[i][1] + p).astype(np.float32)
+                    store[f"{cond}|{ARM}_d{d_ms}|f{f}|t{i}"] = (B[i][1] + p).astype(np.float32)
     np.savez_compressed(out, **store)
     return subject, f"{(time.time() - t0) / 60:.1f} min"
 
@@ -62,4 +66,4 @@ if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     with ProcessPoolExecutor(max_workers=1) as ex:
         for s, msg in ex.map(run_subject, SUBJECTS):
-            print("kintcn", s, msg, flush=True)
+            print(ARM, s, msg, flush=True)

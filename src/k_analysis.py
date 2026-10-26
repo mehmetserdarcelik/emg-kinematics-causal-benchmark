@@ -35,7 +35,7 @@ def holm(p):
     return adj
 
 
-def boot(x, n=5000):
+def boot(x, n=10000):
     x = np.asarray(x)
     b = np.median(rng.choice(x, (n, len(x))), axis=1)
     return np.percentile(b, 2.5), np.percentile(b, 97.5)

@@ -38,7 +38,7 @@ T1 = """**Table 1.** Issues identified in the audit of the open dataset and how 
 |---|---|---|
 | MJ angular velocity units | Ratio to the numerical derivative of the angle 100.2–100.5 (r = 0.998); SJ ratio 1.0 | Multiplied by 100 (rad·sample⁻¹ at 100 Hz → rad·s⁻¹) |
 | MVC recordings | 0.00 % of power above 20 Hz in all 34 files (trial EMG: 63–96 %); consistent with a processed envelope | MVC normalisation not used; z-scoring with training statistics |
-| Wireless sensor dropouts | Runs of ≥ 20 identical raw samples in 1 491 of 3 230 trial–channel pairs (≈ 30 000 segments, mostly 10–20 ms, up to 7 s; 744 s in total); genuine EMG ≤ 2–3 identical consecutive samples | Online detection (≥ 20 identical samples), causal forward fill of features; median 17 % of samples per participant and condition (range 1–78 %) within an affected 200-ms window |
+| Wireless sensor dropouts | Runs of ≥ 20 identical raw samples in 1 491 of 3 230 trial–channel pairs (≈ 30 000 segments, mostly 10–20 ms, up to 7 s; 744 s in total); genuine EMG ≤ 2–3 identical consecutive samples | Online detection (≥ 20 identical samples), causal forward fill of features; a dropout within the preceding 200 ms in a median of 17 % of samples per participant and condition (range 1–78 %) |
 | Zero-phase kinematic filtering (very likely) | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
 | MJ elbow angle saturation | Plateau near 130° in some participants (≤ 4.7 % of samples) | Excluded in sensitivity analysis (median R² change ≤ 0.015) |
 """
@@ -115,9 +115,8 @@ def table3():
             "paired difference from the kinematics-only model with 95 % bootstrap CI; in parentheses, participants with "
             "ΔR² > 0 and Holm-corrected Wilcoxon p (residual fusion: 12 tests; late fusion, seed 0: 36 tests over the three windows and four delays per comparison type). RMSE in °·s⁻¹. "
             "Criterion met (median ΔR² ≥ 0.01 and p_Holm < 0.05): R, residual fusion (pre-specified); L, late fusion with W = 25 ms (exploratory; late fusion with W = 200 ms also met the criterion at d = 150 ms for all three targets). Nominal delays d: the "
-            "provided kinematics are very likely zero-phase filtered. Negative controls at d = 150 ms: residual fusion "
-            "with EMG shifted by 5, 7 or 9 s, ΔR² −0.0006 to −0.0001; late fusion with TCNs trained on EMG shifted "
-            "by 5 s with the same window, ΔR² −0.002 to 0.000; late fusion with a kinematics-only TCN instead of EMG (ensemble control), ΔR² −0.001 to +0.001.\n\n"
+            "provided kinematics are very likely zero-phase filtered. Negative and ensemble controls: Section 3.5 and "
+            "Supplementary Tables S6.3 and S6.6.\n\n"
             "| Target | d (ms) | R² kinematics | ΔR² residual fusion, W = 200 | ΔR² late fusion, W = 200 | "
             "ΔR² late fusion, W = 25 | RMSE kinematics → late fusion (W = 25) | Meets criterion |\n"
             "|---|---|---|---|---|---|---|---|\n")

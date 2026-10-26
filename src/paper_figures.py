@@ -66,9 +66,9 @@ def fig1():
     ax = fig.add_subplot(gs[0, :])
     ax.axis("off")
     title(ax, "a  Causal decoding pipeline")
-    bw, step = 0.135, 0.157
+    bw, step = 0.15, 0.19
     boxes = [(t_, 0.012 + i * step) for i, t_ in enumerate(
-        ["Raw EMG\n2 kHz", "Notch +\nband-pass", "Dropout detection\n(on raw EMG)", "6 features/ch\nwindow W",
+        ["Raw EMG\n2 kHz", "Notch +\nband-pass", "6 features/ch\nwindow W",
          "z-score\n(train stats)", "Causal TCN\n2.53-s context"])]
     for txt, x in boxes:
         ax.add_patch(FancyBboxPatch((x, 0.42), bw, 0.4, boxstyle="round,pad=0.01,rounding_size=0.02",
@@ -78,7 +78,19 @@ def fig1():
         end = 0.968 if x == boxes[-1][1] else x + step - 0.006
         ax.annotate("", xy=(end, 0.62), xytext=(x + bw + 0.008, 0.62), xycoords="axes fraction",
                     arrowprops=dict(arrowstyle="->", color=INK2, lw=1))
-    ax.text(0.975, 0.62, "q̂, q̂̇\n(t + Δ)", ha="left", va="center", fontsize=8, transform=ax.transAxes)
+    ax.text(0.975, 0.62, r"$\hat{q}$, $\dot{\hat{q}}$" "\n(t + Δ)", ha="left", va="center", fontsize=8.5,
+            transform=ax.transAxes)
+    # dropout detection: parallel branch from the raw EMG; the mask enters the feature step
+    ax.add_patch(FancyBboxPatch((0.17, -0.10), 0.2, 0.3, boxstyle="round,pad=0.01,rounding_size=0.02",
+                                fc="#eef3fb", ec=BLUE, lw=1, transform=ax.transAxes, clip_on=False))
+    ax.text(0.27, 0.05, "Dropout detection\n(on raw EMG)", ha="center", va="center", fontsize=7,
+            transform=ax.transAxes)
+    ax.annotate("", xy=(0.165, 0.05), xytext=(0.087, 0.41), xycoords="axes fraction",
+                arrowprops=dict(arrowstyle="->", color=INK2, lw=1, connectionstyle="arc3,rad=0.3"))
+    ax.annotate("", xy=(0.45, 0.41), xytext=(0.375, 0.16), xycoords="axes fraction",
+                arrowprops=dict(arrowstyle="->", color=INK2, lw=1, connectionstyle="arc3,rad=-0.25"))
+    ax.text(0.372, 0.30, "mask,\nforward fill", ha="right", va="center", fontsize=6.3, color=INK2,
+            transform=ax.transAxes)
     ax.add_patch(FancyBboxPatch((0.43, -0.12), 0.34, 0.36, boxstyle="round,pad=0.01,rounding_size=0.02",
                                 fc="#fdf1ea", ec=ORANGE, lw=1, transform=ax.transAxes, clip_on=False))
     ax.text(0.60, 0.06, "Measured kinematics q, q̇ (t − d)\nvery likely zero-phase filtered\n(delayed-feedback analyses only)",
@@ -195,7 +207,7 @@ def fig4():
     ax.set_xlabel("Horizon Δ (ms)")
     ax.set_ylabel("Velocity R² (median)")
     ax.set_ylim(-0.2, 1.0)
-    ax.legend(fontsize=6.3, loc="lower left")
+    ax.legend(fontsize=7, loc="lower left")
     title(ax, "a  EMG vs persistence")
     ax = axs[1]
     kin = sw[sw.kind == "kin"].set_index(["condition", "joint", "subject", "delay_ms"]).r2
@@ -222,7 +234,8 @@ def fig4():
     ax.scatter([], [], color=INK2, marker="x", s=14, label="time-shifted EMG")
     ax.set_xlabel("Kinematic delay d (ms)")
     ax.set_ylabel("ΔR² (EMG added)")
-    ax.legend(fontsize=5.8, loc="upper left")
+    ax.set_ylim(top=0.165)
+    ax.legend(fontsize=6.6, loc="upper left", handlelength=1.6, borderaxespad=0.2)
     title(ax, "b  Added value vs delay")
     ax = axs[2]
     BW = (25, 50, 200)
@@ -241,7 +254,7 @@ def fig4():
                        zorder=3)
     ax.axvline(160, color=INK2, lw=0.7, ls=":")
     ax.set_yticks([i * 3.5 + k for i in range(3) for k in range(3)],
-                  [f"{x[1]}, W={W}" for x in J3 for W in BW], fontsize=6.3)
+                  [f"{x[1]}, W={W}" for x in J3 for W in BW], fontsize=7)
     ax.set_xlim(98, 168)
     ax.invert_yaxis()
     ax.set_xlabel("Break-even delay d* (ms)")
