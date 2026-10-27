@@ -198,7 +198,7 @@ def s4():
     for c_ in ("p_tost", "p_tost_0.005", "p_tost_0.02", "p_sign_0.005", "p_sign_0.01"):
         to[c_] = to[c_].map(lambda p: f"{p:.2g}")
     to = to.rename(columns={"median_diff": "Median ΔR²", "ci90_lo": "90 % CI low", "ci90_hi": "90 % CI high",
-                            "n_outside": "|ΔR²| > 0.01 (n/17)", "p_tost": "p_TOST (±0.01)",
+                            "n_outside": "Outside ±0.01 (n/17)", "p_tost": "p_TOST (±0.01)",
                             "p_tost_0.005": "p_TOST (±0.005)", "p_tost_0.02": "p_TOST (±0.02)",
                             "p_sign_0.005": "p_sign-TOST (±0.005)", "p_sign_0.01": "p_sign-TOST (±0.01)"})
     L = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "v2_loso" / "metrics_S*.csv"))]
@@ -229,7 +229,7 @@ def s4():
 
 {md(st)}
 
-**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; |ΔR²| > 0.01: participants outside the main margin.
+**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; Outside ±0.01: participants whose difference lay outside the main margin.
 
 {md(to)}
 

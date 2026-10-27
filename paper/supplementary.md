@@ -187,16 +187,16 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | LOSO: 30-s calibration − uncalibrated    | MJ elbow angle       |                12 |        0.058 |   -0.029 |     0.225 |  0.32    |
 | LOSO: 30-s calibration − uncalibrated    | MJ elbow velocity    |                10 |        0.022 |   -0.041 |     0.058 |  1       |
 
-**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; |ΔR²| > 0.01: participants outside the main margin.
+**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; Outside ±0.01: participants whose difference lay outside the main margin.
 
-| Target               |   Median ΔR² |   90 % CI low |   90 % CI high |   |ΔR²| > 0.01 (n/17) |   p_TOST (±0.01) |   p_TOST (±0.005) |   p_TOST (±0.02) |   p_sign-TOST (±0.005) |   p_sign-TOST (±0.01) |
-|:---------------------|-------------:|--------------:|---------------:|----------------------:|-----------------:|------------------:|-----------------:|-----------------------:|----------------------:|
-| SJ elbow angle       |        0.038 |         0.026 |          0.041 |                    15 |           1      |             1     |          1       |                   1    |               1       |
-| SJ elbow velocity    |        0.001 |        -0.001 |          0.005 |                     1 |           0.0016 |             0.044 |          0.00084 |                   0.17 |               0.00014 |
-| MJ shoulder angle    |        0.035 |         0.027 |          0.036 |                    15 |           1      |             1     |          1       |                   1    |               1       |
-| MJ shoulder velocity |        0.026 |         0.017 |          0.029 |                    14 |           1      |             1     |          0.9     |                   1    |               1       |
-| MJ elbow angle       |        0.241 |         0.232 |          0.298 |                    17 |           1      |             1     |          1       |                   1    |               1       |
-| MJ elbow velocity    |        0.058 |         0.04  |          0.077 |                    16 |           1      |             1     |          1       |                   1    |               1       |
+| Target               |   Median ΔR² |   90 % CI low |   90 % CI high |   Outside ±0.01 (n/17) |   p_TOST (±0.01) |   p_TOST (±0.005) |   p_TOST (±0.02) |   p_sign-TOST (±0.005) |   p_sign-TOST (±0.01) |
+|:---------------------|-------------:|--------------:|---------------:|-----------------------:|-----------------:|------------------:|-----------------:|-----------------------:|----------------------:|
+| SJ elbow angle       |        0.038 |         0.026 |          0.041 |                     15 |           1      |             1     |          1       |                   1    |               1       |
+| SJ elbow velocity    |        0.001 |        -0.001 |          0.005 |                      1 |           0.0016 |             0.044 |          0.00084 |                   0.17 |               0.00014 |
+| MJ shoulder angle    |        0.035 |         0.027 |          0.036 |                     15 |           1      |             1     |          1       |                   1    |               1       |
+| MJ shoulder velocity |        0.026 |         0.017 |          0.029 |                     14 |           1      |             1     |          0.9     |                   1    |               1       |
+| MJ elbow angle       |        0.241 |         0.232 |          0.298 |                     17 |           1      |             1     |          1       |                   1    |               1       |
+| MJ elbow velocity    |        0.058 |         0.04  |          0.077 |                     16 |           1      |             1     |          1       |                   1    |               1       |
 
 **Table S4.4.** Leave-one-subject-out results.
 
