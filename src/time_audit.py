@@ -29,7 +29,7 @@ def audit(subject):
                              dt_emg_max_dev=np.abs(np.diff(te) - 1 / 2000).max(),
                              dt_kin_max_dev=np.abs(np.diff(k) - 1 / 100).max(),
                              emg_vs_kin_time_max=np.abs(te[::20][:len(k)] - k).max(),
-                             shared_kin_base=all(len(v) == len(k) and np.allclose(v, k, atol=1e-9)
+                             shared_kin_base=all(len(v) == len(k) and np.allclose(v, k, rtol=0, atol=1e-9)
                                                  for v in tk.values())))
     return rows
 

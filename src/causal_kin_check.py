@@ -73,9 +73,12 @@ def run_subject(subject):
 
 
 if __name__ == "__main__":
-    with ProcessPoolExecutor(max_workers=3) as ex:
-        df = pd.DataFrame([r for rs in ex.map(run_subject, SUBJECTS) for r in rs])
-    df.to_csv(OUT / "causal_kin.csv", index=False)
+    if sys.argv[1:] == ["summary"]:   # summary only: from the saved per-participant results (no data needed)
+        df = pd.read_csv(OUT / "causal_kin.csv")
+    else:
+        with ProcessPoolExecutor(max_workers=3) as ex:
+            df = pd.DataFrame([r for rs in ex.map(run_subject, SUBJECTS) for r in rs])
+        df.to_csv(OUT / "causal_kin.csv", index=False)
     piv = df.pivot_table(index=["condition", "joint", "subject", "delay_ms"], columns="arm", values="r2")
     s = pd.DataFrame({"kin_causal": piv["kin_causal"].groupby(level=[0, 1, 3]).median(),
                       "late_causal_w25": piv["late_causal_w25"].groupby(level=[0, 1, 3]).median(),

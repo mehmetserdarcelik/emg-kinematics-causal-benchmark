@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import wilcoxon
+from scipy.stats import binomtest, wilcoxon
 
 sys.path.insert(0, str(Path(__file__).parent))
 from stats import TGT  # noqa: E402
@@ -16,6 +16,7 @@ from stats import TGT  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 R = ROOT / "results"
 DELTA = 0.01
+MARGINS = (0.005, 0.01, 0.02)
 rng = np.random.default_rng(0)
 
 
@@ -29,9 +30,17 @@ def main():
         p_lo = wilcoxon(d + DELTA, alternative="greater").pvalue
         p_hi = wilcoxon(d - DELTA, alternative="less").pvalue
         b = np.median(rng.choice(d, (10000, len(d))), axis=1)
-        rows.append(dict(condition=c, joint=j, target=t, n=len(d), median_diff=np.median(d),
-                         ci90_lo=np.percentile(b, 5), ci90_hi=np.percentile(b, 95),
-                         p_lower=p_lo, p_upper=p_hi, p_tost=max(p_lo, p_hi), delta=DELTA))
+        row = dict(condition=c, joint=j, target=t, n=len(d), median_diff=np.median(d),
+                   ci90_lo=np.percentile(b, 5), ci90_hi=np.percentile(b, 95),
+                   p_lower=p_lo, p_upper=p_hi, p_tost=max(p_lo, p_hi), delta=DELTA,
+                   n_outside=int((np.abs(d) > DELTA).sum()))
+        # margin sensitivity: Wilcoxon TOST and a sign-test TOST that does not assume symmetry
+        for m in MARGINS:
+            row[f"p_tost_{m}"] = max(wilcoxon(d + m, alternative="greater").pvalue,
+                                     wilcoxon(d - m, alternative="less").pvalue)
+            row[f"p_sign_{m}"] = max(binomtest(int((d > -m).sum()), len(d), alternative="greater").pvalue,
+                                     binomtest(int((d < m).sum()), len(d), alternative="greater").pvalue)
+        rows.append(row)
     out = pd.DataFrame(rows)
     out.to_csv(R / "extra" / "tost.csv", index=False)
     return out

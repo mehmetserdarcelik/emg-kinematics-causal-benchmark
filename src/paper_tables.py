@@ -63,9 +63,9 @@ def table2():
                     f"{int(pf.wins)}/17, {fp(pf.p_holm)} |")
     head = ("**Table 2.** Decoding accuracy (R², median across 17 participants; 95 % bootstrap CI for the TCN and "
             "LOSO). Within-subject: rotating trial-level folds; LOSO: leave-one-subject-out, TCN averaged over three "
-            "seeds. Last column: participants improved by calibration and Holm-corrected Wilcoxon p. "
+            "seeds. Last column: participants improved with the 30-s normalisation scheme and Holm-corrected Wilcoxon p; training and test participants were normalised in the same way, so this compares two normalisation schemes. "
             "RMSE in ° (angle) or °·s⁻¹ (velocity). W = 200 ms.\n\n"
-            "| Target | Ridge | LSTM | TCN | TCN RMSE | LOSO uncalibrated | LOSO 30-s calibration | Calibration effect |\n"
+            "| Target | Ridge | LSTM | TCN | TCN RMSE | LOSO uncalibrated | LOSO 30-s calibration | Difference between normalisation schemes |\n"
             "|---|---|---|---|---|---|---|---|\n")
     return head + "\n".join(rows) + "\n"
 

@@ -70,9 +70,12 @@ def run_subject(subject):
 
 
 if __name__ == "__main__":
-    with ProcessPoolExecutor(max_workers=3) as ex:
-        df = pd.DataFrame([r for rs in ex.map(run_subject, SUBJECTS) for r in rs])
-    df.to_csv(OUT / "window_dropout.csv", index=False)
+    if sys.argv[1:] == ["summary"]:   # summary only: from the saved per-participant results (no data needed)
+        df = pd.read_csv(OUT / "window_dropout.csv")
+    else:
+        with ProcessPoolExecutor(max_workers=3) as ex:
+            df = pd.DataFrame([r for rs in ex.map(run_subject, SUBJECTS) for r in rs])
+        df.to_csv(OUT / "window_dropout.csv", index=False)
     piv = df.pivot_table(index=["subset", "condition", "joint", "target", "subject"], columns="arm", values="r2")
     rows = []
     rng = np.random.default_rng(0)

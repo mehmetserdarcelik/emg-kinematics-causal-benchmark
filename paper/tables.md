@@ -12,9 +12,9 @@
 | Zero-phase kinematic filtering (very likely) | Preprint statement of bidirectional filtering; −293 dB/decade roll-off (two-pass simulation −294, one-pass −133); velocity leads SJ torque by a median of 65 ms | Targets used as provided; nominal kinematic delays interpreted with caution (filtering may bias both kinematic and EMG-based predictions) |
 | MJ elbow angle saturation | Plateau near 130° in some participants (≤ 4.7 % of samples) | Excluded in sensitivity analysis (median R² change ≤ 0.015) |
 
-**Table 2.** Decoding accuracy (R², median across 17 participants; 95 % bootstrap CI for the TCN and LOSO). Within-subject: rotating trial-level folds; LOSO: leave-one-subject-out, TCN averaged over three seeds. Last column: participants improved by calibration and Holm-corrected Wilcoxon p. RMSE in ° (angle) or °·s⁻¹ (velocity). W = 200 ms.
+**Table 2.** Decoding accuracy (R², median across 17 participants; 95 % bootstrap CI for the TCN and LOSO). Within-subject: rotating trial-level folds; LOSO: leave-one-subject-out, TCN averaged over three seeds. Last column: participants improved with the 30-s normalisation scheme and Holm-corrected Wilcoxon p; training and test participants were normalised in the same way, so this compares two normalisation schemes. RMSE in ° (angle) or °·s⁻¹ (velocity). W = 200 ms.
 
-| Target | Ridge | LSTM | TCN | TCN RMSE | LOSO uncalibrated | LOSO 30-s calibration | Calibration effect |
+| Target | Ridge | LSTM | TCN | TCN RMSE | LOSO uncalibrated | LOSO 30-s calibration | Difference between normalisation schemes |
 |---|---|---|---|---|---|---|---|
 | SJ elbow angle | 0.877 | 0.910 | **0.930 [0.917, 0.937]** | 5.4 | 0.795 [0.634, 0.818] | 0.847 [0.819, 0.869] | 16/17, 4.6·10⁻⁴ |
 | SJ elbow velocity | 0.872 | 0.899 | **0.930 [0.915, 0.941]** | 11.1 | 0.853 [0.797, 0.886] | 0.906 [0.883, 0.913] | 16/17, 4.6·10⁻⁴ |

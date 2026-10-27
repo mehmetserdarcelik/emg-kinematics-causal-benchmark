@@ -192,10 +192,15 @@ def s4():
     st = st.rename(columns={"wins": "Positive (n/17)", "median_diff": "Median ΔR²", "ci_lo": "CI low",
                             "ci_hi": "CI high", "p_holm": "p_Holm"})
     st["p_Holm"] = st["p_Holm"].map(lambda p: f"{p:.2g}")
-    to = lab(pd.read_csv(R / "extra" / "tost.csv"))[["Target", "median_diff", "ci90_lo", "ci90_hi", "p_tost"]]
-    to["p_tost"] = to.p_tost.map(lambda p: f"{p:.2g}")
+    to = lab(pd.read_csv(R / "extra" / "tost.csv"))[["Target", "median_diff", "ci90_lo", "ci90_hi", "n_outside",
+                                                      "p_tost", "p_tost_0.005", "p_tost_0.02", "p_sign_0.005",
+                                                      "p_sign_0.01"]]
+    for c_ in ("p_tost", "p_tost_0.005", "p_tost_0.02", "p_sign_0.005", "p_sign_0.01"):
+        to[c_] = to[c_].map(lambda p: f"{p:.2g}")
     to = to.rename(columns={"median_diff": "Median ΔR²", "ci90_lo": "90 % CI low", "ci90_hi": "90 % CI high",
-                            "p_tost": "p_TOST (±0.01)"})
+                            "n_outside": "|ΔR²| > 0.01 (n/17)", "p_tost": "p_TOST (±0.01)",
+                            "p_tost_0.005": "p_TOST (±0.005)", "p_tost_0.02": "p_TOST (±0.02)",
+                            "p_sign_0.005": "p_sign-TOST (±0.005)", "p_sign_0.01": "p_sign-TOST (±0.01)"})
     L = pd.concat([pd.read_csv(p) for p in glob.glob(str(R / "v2_loso" / "metrics_S*.csv"))]
                   + [pd.read_csv(p) for p in glob.glob(str(R / "extra" / "loso_seeds_S*.csv"))])
     L = L.groupby(["model", "subject", "condition", "joint", "target", "variant"], as_index=False)[
@@ -224,7 +229,7 @@ def s4():
 
 {md(st)}
 
-**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05.
+**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; |ΔR²| > 0.01: participants outside the main margin.
 
 {md(to)}
 
@@ -256,7 +261,9 @@ def s5():
         "d001": "d₀.₀₁ (ms)", "win150": "Positive at d=150 (n/17)"})
     sl = pd.read_csv(R / "k_checks" / "K3A_slope_threshold001.csv")
     sl = sl.assign(Target=[x[2] for c_, j_ in zip(sl.condition, sl.joint) for x in J3 if x[:2] == (c_, j_)])
-    sl = sl[["Target", "d01_W50", "d01_W100", "d01_W200", "b", "ci_lo", "ci_hi"]]
+    sl = sl[["Target", "d01_W50", "d01_W100", "d01_W200", "b", "ci_lo", "ci_hi"]].rename(columns={
+        "d01_W50": "d₀.₀₁, W=50 (ms)", "d01_W100": "d₀.₀₁, W=100 (ms)", "d01_W200": "d₀.₀₁, W=200 (ms)",
+        "b": "Slope b", "ci_lo": "CI low", "ci_hi": "CI high"})
     cl = pd.read_csv(R / "extra" / "check_lag_ridge.csv")
     cl = cl.groupby(["h", "condition", "joint", "target", "variant"]).r2.median().unstack("variant").reset_index()
     cl = lab(cl)
@@ -316,7 +323,7 @@ def s5():
 
 {md(db)}
 
-**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160"). The kinematics-only R² at delay d is evaluated on t ≥ d, whereas the EMG-only R² uses all samples; recomputed on the common samples with the late-fusion EMG-only TCNs (W = 25, 50 and 200 ms), d* was 1–3 ms shorter (MJ elbow, W = 50 ms: 159 ms instead of > 160 ms).
+**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160"). Rows "EMG-TCN, common samples" (W = 25, 50 and 200 ms; the estimates reported in the main text and Fig. 4c) use the late-fusion kinematics-only ridge and EMG-only TCNs, both evaluated on the same samples (t ≥ d) at every delay; their EMG-only R² is given at d = 150 ms. In the other rows, which cover all windows, the kinematics-only R² at delay d is evaluated on t ≥ d whereas the EMG-only R² uses all samples; their d* is 1–3 ms longer.
 
 {md(br, 3)}
 
@@ -410,6 +417,8 @@ def s6():
     k3 = k3[["W", "d", "Target", "median", "wins", "p_holm", "pos"]].rename(columns={
         "d": "d (ms)", "median": "Median ΔR²", "wins": "Positive (n/17)", "pos": "Meets criterion"})
     k3["p_holm"] = k3.p_holm.map(lambda p: f"{p:.2g}")
+    k3["Meets criterion"] = k3["Meets criterion"].map({True: "yes", False: "no"})
+    k3 = k3.rename(columns={"p_holm": "p_Holm"})
     return f"""# S6. Prediction horizon and delayed kinematic feedback
 
 **Table S6.1.** Median R² as a function of the prediction horizon Δ (ms) for the EMG-only TCN, the torque-only TCN and persistence (ŷ(t + Δ) = y(t)). W = 200 ms; TCNs trained with a single seed (seed 0), so values at Δ = 0 differ slightly from the three-seed values in Table 2.

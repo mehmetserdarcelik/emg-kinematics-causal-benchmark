@@ -28,7 +28,7 @@ python src/download.py      # needed for Fig. 1 and Supplementary S1 only
 python reproduce.py
 ```
 
-This recomputes all summary tables and statistics from the per-participant files in `results/` and writes `paper/tables.md`, `paper/figures/Fig1–Fig6` and `paper/supplementary.md` in a few minutes on a CPU. The outputs are identical to those in the paper.
+This recomputes the summary tables and statistics from the per-participant result files in `results/` (saved outputs of steps that need the raw data or GPU training, such as the window sweep, prediction horizon, filter, timing and dropout analyses, are read as they are) and writes `paper/tables.md`, `paper/figures/Fig1–Fig6` and `paper/supplementary.md` in a few minutes on a CPU. The outputs are identical to those in the paper.
 
 ## Full reproduction from the raw data
 

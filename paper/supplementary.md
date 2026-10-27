@@ -187,16 +187,16 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | LOSO: 30-s calibration − uncalibrated    | MJ elbow angle       |                12 |        0.058 |   -0.029 |     0.225 |  0.32    |
 | LOSO: 30-s calibration − uncalibrated    | MJ elbow velocity    |                10 |        0.022 |   -0.041 |     0.058 |  1       |
 
-**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05.
+**Table S4.3.** Equivalence test (two one-sided Wilcoxon tests, margin ±0.01 ΔR²) for EMG + torque versus torque, with 90 % bootstrap CI. Equivalence is shown only where p_TOST < 0.05. Margin sensitivity: Wilcoxon TOST with margins ±0.005 and ±0.02, and a sign-test TOST (two one-sided binomial tests on the number of differences above −δ and below +δ), which does not assume a symmetric distribution of the differences; |ΔR²| > 0.01: participants outside the main margin.
 
-| Target               |   Median ΔR² |   90 % CI low |   90 % CI high |   p_TOST (±0.01) |
-|:---------------------|-------------:|--------------:|---------------:|-----------------:|
-| SJ elbow angle       |        0.038 |         0.026 |          0.041 |           1      |
-| SJ elbow velocity    |        0.001 |        -0.001 |          0.005 |           0.0016 |
-| MJ shoulder angle    |        0.035 |         0.027 |          0.036 |           1      |
-| MJ shoulder velocity |        0.026 |         0.017 |          0.029 |           1      |
-| MJ elbow angle       |        0.241 |         0.232 |          0.298 |           1      |
-| MJ elbow velocity    |        0.058 |         0.04  |          0.077 |           1      |
+| Target               |   Median ΔR² |   90 % CI low |   90 % CI high |   |ΔR²| > 0.01 (n/17) |   p_TOST (±0.01) |   p_TOST (±0.005) |   p_TOST (±0.02) |   p_sign-TOST (±0.005) |   p_sign-TOST (±0.01) |
+|:---------------------|-------------:|--------------:|---------------:|----------------------:|-----------------:|------------------:|-----------------:|-----------------------:|----------------------:|
+| SJ elbow angle       |        0.038 |         0.026 |          0.041 |                    15 |           1      |             1     |          1       |                   1    |               1       |
+| SJ elbow velocity    |        0.001 |        -0.001 |          0.005 |                     1 |           0.0016 |             0.044 |          0.00084 |                   0.17 |               0.00014 |
+| MJ shoulder angle    |        0.035 |         0.027 |          0.036 |                    15 |           1      |             1     |          1       |                   1    |               1       |
+| MJ shoulder velocity |        0.026 |         0.017 |          0.029 |                    14 |           1      |             1     |          0.9     |                   1    |               1       |
+| MJ elbow angle       |        0.241 |         0.232 |          0.298 |                    17 |           1      |             1     |          1       |                   1    |               1       |
+| MJ elbow velocity    |        0.058 |         0.04  |          0.077 |                    16 |           1      |             1     |          1       |                   1    |               1       |
 
 **Table S4.4.** Leave-one-subject-out results.
 
@@ -297,11 +297,11 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 
 **Table S5.3.** Dependence of d₀.₀₁ on the window (W = 50, 100 and 200 ms) and slope b = [d₀.₀₁(200) − d₀.₀₁(50)] / 75 ms with 95 % bootstrap CI (2 000 resamples). b = 1 would correspond to a pure effect of mean window age; b = 0 to no window effect.
 
-| Target      |   d01_W50 |   d01_W100 |   d01_W200 |     b |   ci_lo |   ci_hi |
-|:------------|----------:|-----------:|-----------:|------:|--------:|--------:|
-| SJ elbow    |   113.113 |    117.612 |    137.042 | 0.319 |   0.221 |   0.433 |
-| MJ shoulder |   103.3   |    108.793 |    128.561 | 0.337 |   0.179 |   0.407 |
-| MJ elbow    |   115.373 |    126.219 |    136.577 | 0.283 |   0.147 |   0.376 |
+| Target      |   d₀.₀₁, W=50 (ms) |   d₀.₀₁, W=100 (ms) |   d₀.₀₁, W=200 (ms) |   Slope b |   CI low |   CI high |
+|:------------|-------------------:|--------------------:|--------------------:|----------:|---------:|----------:|
+| SJ elbow    |            113.113 |             117.612 |             137.042 |     0.319 |    0.221 |     0.433 |
+| MJ shoulder |            103.3   |             108.793 |             128.561 |     0.337 |    0.179 |     0.407 |
+| MJ elbow    |            115.373 |             126.219 |             136.577 |     0.283 |    0.147 |     0.376 |
 
 **Table S5.4.** Latency diagnostic (ridge EMG decoder, 0.5 s history; median R²). W200+k: 200-ms features advanced by k ms (non-causal, diagnosis only).
 
@@ -331,52 +331,61 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 | MJ elbow angle       |                 0.021 |                         0.409 |                           0.015 | 7/8                          |                       15.754 |
 | MJ elbow velocity    |                 0.041 |                         0.485 |                           0.031 | 8/8                          |                       15.754 |
 
-**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160"). The kinematics-only R² at delay d is evaluated on t ≥ d, whereas the EMG-only R² uses all samples; recomputed on the common samples with the late-fusion EMG-only TCNs (W = 25, 50 and 200 ms), d* was 1–3 ms shorter (MJ elbow, W = 50 ms: 159 ms instead of > 160 ms).
+**Table S5.6.** Break-even latency d* (q̇, Δ = 100 ms; kinematics-only ridge baseline) for all windows and both EMG-only models. 95 % CIs from 10 000 participant-level bootstrap resamples, including resamples without a crossing within 160 ms ("> 160"). Rows "EMG-TCN, common samples" (W = 25, 50 and 200 ms; the estimates reported in the main text and Fig. 4c) use the late-fusion kinematics-only ridge and EMG-only TCNs, both evaluated on the same samples (t ≥ d) at every delay; their EMG-only R² is given at d = 150 ms. In the other rows, which cover all windows, the kinematics-only R² at delay d is evaluated on t ≥ d whereas the EMG-only R² uses all samples; their d* is 1–3 ms longer.
 
-| Target      | EMG-only model   |   W |   EMG-only R² | d* (ms)   | CI low   | CI high   |   Resamples > 160 ms |
-|:------------|:-----------------|----:|--------------:|:----------|:---------|:----------|---------------------:|
-| SJ elbow    | EMG-TCN          |  25 |         0.879 | 109.557   | 105.671  | 120.346   |                0     |
-| SJ elbow    | EMG-ridge        |  25 |         0.821 | 137.187   | 131.122  | 146.131   |                0     |
-| SJ elbow    | EMG-TCN          |  50 |         0.869 | 114.738   | 112.369  | 124.740   |                0     |
-| SJ elbow    | EMG-ridge        |  50 |         0.827 | 134.264   | 129.439  | 144.634   |                0     |
-| SJ elbow    | EMG-TCN          |  75 |         0.86  | 119.291   | 116.726  | 129.616   |                0     |
-| SJ elbow    | EMG-ridge        |  75 |         0.823 | 136.020   | 132.325  | 147.928   |                0     |
-| SJ elbow    | EMG-TCN          | 100 |         0.852 | 123.181   | 120.983  | 132.430   |                0     |
-| SJ elbow    | EMG-ridge        | 100 |         0.822 | 136.458   | 133.091  | 148.661   |                0     |
-| SJ elbow    | EMG-TCN          | 150 |         0.829 | 133.621   | 128.782  | 144.131   |                0     |
-| SJ elbow    | EMG-ridge        | 150 |         0.81  | 141.731   | 138.811  | 154.921   |                0.007 |
-| SJ elbow    | EMG-TCN          | 200 |         0.811 | 141.469   | 137.711  | 151.850   |                0.004 |
-| SJ elbow    | EMG-ridge        | 200 |         0.791 | 149.978   | 145.672  | > 160     |                0.048 |
-| SJ elbow    | EMG-TCN          | 250 |         0.79  | 150.353   | 146.241  | > 160     |                0.031 |
-| SJ elbow    | EMG-ridge        | 250 |         0.775 | 156.269   | 151.222  | > 160     |                0.229 |
-| MJ shoulder | EMG-TCN          |  25 |         0.834 | 140.582   | 132.790  | 152.587   |                0     |
-| MJ shoulder | EMG-ridge        |  25 |         0.751 | > 160     | > 160    | > 160     |                0.999 |
-| MJ shoulder | EMG-TCN          |  50 |         0.827 | 143.901   | 137.690  | 157.596   |                0.02  |
-| MJ shoulder | EMG-ridge        |  50 |         0.758 | > 160     | > 160    | > 160     |                0.986 |
-| MJ shoulder | EMG-TCN          |  75 |         0.818 | 148.361   | 141.739  | > 160     |                0.025 |
-| MJ shoulder | EMG-ridge        |  75 |         0.753 | > 160     | > 160    | > 160     |                0.99  |
-| MJ shoulder | EMG-TCN          | 100 |         0.807 | 153.223   | 145.498  | > 160     |                0.031 |
-| MJ shoulder | EMG-ridge        | 100 |         0.749 | > 160     | > 160    | > 160     |                0.997 |
-| MJ shoulder | EMG-TCN          | 150 |         0.785 | > 160     | 149.967  | > 160     |                0.634 |
-| MJ shoulder | EMG-ridge        | 150 |         0.742 | > 160     | > 160    | > 160     |                1     |
-| MJ shoulder | EMG-TCN          | 200 |         0.763 | > 160     | 156.985  | > 160     |                0.937 |
-| MJ shoulder | EMG-ridge        | 200 |         0.729 | > 160     | > 160    | > 160     |                1     |
-| MJ shoulder | EMG-TCN          | 250 |         0.742 | > 160     | > 160    | > 160     |                0.996 |
-| MJ shoulder | EMG-ridge        | 250 |         0.714 | > 160     | > 160    | > 160     |                1     |
-| MJ elbow    | EMG-TCN          |  25 |         0.73  | 155.866   | 143.838  | > 160     |                0.312 |
-| MJ elbow    | EMG-ridge        |  25 |         0.646 | > 160     | > 160    | > 160     |                1     |
-| MJ elbow    | EMG-TCN          |  50 |         0.715 | > 160     | 146.134  | > 160     |                0.727 |
-| MJ elbow    | EMG-ridge        |  50 |         0.656 | > 160     | > 160    | > 160     |                0.999 |
-| MJ elbow    | EMG-TCN          |  75 |         0.699 | > 160     | 148.931  | > 160     |                0.811 |
-| MJ elbow    | EMG-ridge        |  75 |         0.648 | > 160     | > 160    | > 160     |                0.999 |
-| MJ elbow    | EMG-TCN          | 100 |         0.68  | > 160     | 152.823  | > 160     |                0.907 |
-| MJ elbow    | EMG-ridge        | 100 |         0.639 | > 160     | > 160    | > 160     |                0.998 |
-| MJ elbow    | EMG-TCN          | 150 |         0.658 | > 160     | 158.251  | > 160     |                0.971 |
-| MJ elbow    | EMG-ridge        | 150 |         0.62  | > 160     | > 160    | > 160     |                1     |
-| MJ elbow    | EMG-TCN          | 200 |         0.64  | > 160     | > 160    | > 160     |                0.992 |
-| MJ elbow    | EMG-ridge        | 200 |         0.605 | > 160     | > 160    | > 160     |                1     |
-| MJ elbow    | EMG-TCN          | 250 |         0.612 | > 160     | > 160    | > 160     |                0.999 |
-| MJ elbow    | EMG-ridge        | 250 |         0.587 | > 160     | > 160    | > 160     |                1     |
+| Target      | EMG-only model          |   W |   EMG-only R² | d* (ms)   | CI low   | CI high   |   Resamples > 160 ms |
+|:------------|:------------------------|----:|--------------:|:----------|:---------|:----------|---------------------:|
+| SJ elbow    | EMG-TCN                 |  25 |         0.879 | 109.557   | 105.671  | 120.346   |                0     |
+| SJ elbow    | EMG-ridge               |  25 |         0.821 | 137.187   | 131.122  | 146.131   |                0     |
+| SJ elbow    | EMG-TCN                 |  50 |         0.869 | 114.738   | 112.369  | 124.740   |                0     |
+| SJ elbow    | EMG-ridge               |  50 |         0.827 | 134.264   | 129.439  | 144.634   |                0     |
+| SJ elbow    | EMG-TCN                 |  75 |         0.86  | 119.291   | 116.726  | 129.616   |                0     |
+| SJ elbow    | EMG-ridge               |  75 |         0.823 | 136.020   | 132.325  | 147.928   |                0     |
+| SJ elbow    | EMG-TCN                 | 100 |         0.852 | 123.181   | 120.983  | 132.430   |                0     |
+| SJ elbow    | EMG-ridge               | 100 |         0.822 | 136.458   | 133.091  | 148.661   |                0     |
+| SJ elbow    | EMG-TCN                 | 150 |         0.829 | 133.621   | 128.782  | 144.131   |                0     |
+| SJ elbow    | EMG-ridge               | 150 |         0.81  | 141.731   | 138.811  | 154.921   |                0.007 |
+| SJ elbow    | EMG-TCN                 | 200 |         0.811 | 141.469   | 137.711  | 151.850   |                0.004 |
+| SJ elbow    | EMG-ridge               | 200 |         0.791 | 149.978   | 145.672  | > 160     |                0.048 |
+| SJ elbow    | EMG-TCN                 | 250 |         0.79  | 150.353   | 146.241  | > 160     |                0.031 |
+| SJ elbow    | EMG-ridge               | 250 |         0.775 | 156.269   | 151.222  | > 160     |                0.229 |
+| MJ shoulder | EMG-TCN                 |  25 |         0.834 | 140.582   | 132.790  | 152.587   |                0     |
+| MJ shoulder | EMG-ridge               |  25 |         0.751 | > 160     | > 160    | > 160     |                0.999 |
+| MJ shoulder | EMG-TCN                 |  50 |         0.827 | 143.901   | 137.690  | 157.596   |                0.02  |
+| MJ shoulder | EMG-ridge               |  50 |         0.758 | > 160     | > 160    | > 160     |                0.986 |
+| MJ shoulder | EMG-TCN                 |  75 |         0.818 | 148.361   | 141.739  | > 160     |                0.025 |
+| MJ shoulder | EMG-ridge               |  75 |         0.753 | > 160     | > 160    | > 160     |                0.99  |
+| MJ shoulder | EMG-TCN                 | 100 |         0.807 | 153.223   | 145.498  | > 160     |                0.031 |
+| MJ shoulder | EMG-ridge               | 100 |         0.749 | > 160     | > 160    | > 160     |                0.997 |
+| MJ shoulder | EMG-TCN                 | 150 |         0.785 | > 160     | 149.967  | > 160     |                0.634 |
+| MJ shoulder | EMG-ridge               | 150 |         0.742 | > 160     | > 160    | > 160     |                1     |
+| MJ shoulder | EMG-TCN                 | 200 |         0.763 | > 160     | 156.985  | > 160     |                0.937 |
+| MJ shoulder | EMG-ridge               | 200 |         0.729 | > 160     | > 160    | > 160     |                1     |
+| MJ shoulder | EMG-TCN                 | 250 |         0.742 | > 160     | > 160    | > 160     |                0.996 |
+| MJ shoulder | EMG-ridge               | 250 |         0.714 | > 160     | > 160    | > 160     |                1     |
+| MJ elbow    | EMG-TCN                 |  25 |         0.73  | 155.866   | 143.838  | > 160     |                0.312 |
+| MJ elbow    | EMG-ridge               |  25 |         0.646 | > 160     | > 160    | > 160     |                1     |
+| MJ elbow    | EMG-TCN                 |  50 |         0.715 | > 160     | 146.134  | > 160     |                0.727 |
+| MJ elbow    | EMG-ridge               |  50 |         0.656 | > 160     | > 160    | > 160     |                0.999 |
+| MJ elbow    | EMG-TCN                 |  75 |         0.699 | > 160     | 148.931  | > 160     |                0.811 |
+| MJ elbow    | EMG-ridge               |  75 |         0.648 | > 160     | > 160    | > 160     |                0.999 |
+| MJ elbow    | EMG-TCN                 | 100 |         0.68  | > 160     | 152.823  | > 160     |                0.907 |
+| MJ elbow    | EMG-ridge               | 100 |         0.639 | > 160     | > 160    | > 160     |                0.998 |
+| MJ elbow    | EMG-TCN                 | 150 |         0.658 | > 160     | 158.251  | > 160     |                0.971 |
+| MJ elbow    | EMG-ridge               | 150 |         0.62  | > 160     | > 160    | > 160     |                1     |
+| MJ elbow    | EMG-TCN                 | 200 |         0.64  | > 160     | > 160    | > 160     |                0.992 |
+| MJ elbow    | EMG-ridge               | 200 |         0.605 | > 160     | > 160    | > 160     |                1     |
+| MJ elbow    | EMG-TCN                 | 250 |         0.612 | > 160     | > 160    | > 160     |                0.999 |
+| MJ elbow    | EMG-ridge               | 250 |         0.587 | > 160     | > 160    | > 160     |                1     |
+| SJ elbow    | EMG-TCN, common samples |  25 |         0.881 | 108.602   | 104.769  | 118.704   |                0     |
+| SJ elbow    | EMG-TCN, common samples |  50 |         0.872 | 113.402   | 109.656  | 122.855   |                0     |
+| SJ elbow    | EMG-TCN, common samples | 200 |         0.816 | 139.358   | 135.241  | 149.130   |                0     |
+| MJ shoulder | EMG-TCN, common samples |  25 |         0.84  | 138.171   | 130.612  | 150.233   |                0     |
+| MJ shoulder | EMG-TCN, common samples |  50 |         0.834 | 140.802   | 134.513  | 155.561   |                0.015 |
+| MJ shoulder | EMG-TCN, common samples | 200 |         0.772 | > 160     | 154.182  | > 160     |                0.8   |
+| MJ elbow    | EMG-TCN, common samples |  25 |         0.733 | 154.900   | 142.939  | > 160     |                0.214 |
+| MJ elbow    | EMG-TCN, common samples |  50 |         0.719 | 159.312   | 145.455  | > 160     |                0.413 |
+| MJ elbow    | EMG-TCN, common samples | 200 |         0.648 | > 160     | > 160    | > 160     |                0.99  |
 
 **Table S5.7.** Short versus long windows on dropout-free samples: EMG-only TCN, Δ = 100 ms (single seed), median R² for W = 25 and 200 ms and median paired gain with 95 % bootstrap CI, evaluated on all samples, on samples without a dropout in any channel during the preceding 200 ms, and on samples without a dropout during the whole network context (≈ 2.7 s; dropouts marked over their full length; first 2.7 s of each trial excluded). N: participants with at least 10 s of retained data.
 
@@ -552,44 +561,44 @@ The rules below were written and frozen on 14 October 2026, after the main analy
 
 **Table S6.5.** TCN early fusion for q̇(t + 100 ms) with W = 50, 100 and 200 ms (single seed). Meets criterion: median ΔR² ≥ 0.01 and p_Holm < 0.05.
 
-|   W |   d (ms) | Target      |   Median ΔR² |   Positive (n/17) |   p_holm | Meets criterion   |
+|   W |   d (ms) | Target      |   Median ΔR² |   Positive (n/17) |   p_Holm | Meets criterion   |
 |----:|---------:|:------------|-------------:|------------------:|---------:|:------------------|
-|  50 |        0 | SJ elbow    |      -0.0158 |                 0 |  0.00018 | False             |
-|  50 |        0 | MJ shoulder |      -0.006  |                 1 |  0.00021 | False             |
-|  50 |        0 | MJ elbow    |      -0.0211 |                 0 |  0.00018 | False             |
-|  50 |       50 | SJ elbow    |       0.0166 |                16 |  0.00018 | True              |
-|  50 |       50 | MJ shoulder |       0.0276 |                17 |  0.00018 | True              |
-|  50 |       50 | MJ elbow    |      -0.0079 |                 7 |  0.17    | False             |
-|  50 |      100 | SJ elbow    |       0.1034 |                17 |  0.00018 | True              |
-|  50 |      100 | MJ shoulder |       0.1061 |                17 |  0.00018 | True              |
-|  50 |      100 | MJ elbow    |       0.0908 |                17 |  0.00018 | True              |
-|  50 |      150 | SJ elbow    |       0.2167 |                17 |  0.00018 | True              |
-|  50 |      150 | MJ shoulder |       0.2168 |                17 |  0.00018 | True              |
-|  50 |      150 | MJ elbow    |       0.2173 |                17 |  0.00018 | True              |
-| 100 |        0 | SJ elbow    |      -0.0211 |                 0 |  0.00018 | False             |
-| 100 |        0 | MJ shoulder |      -0.0115 |                 0 |  0.00018 | False             |
-| 100 |        0 | MJ elbow    |      -0.0248 |                 0 |  0.00018 | False             |
-| 100 |       50 | SJ elbow    |      -0.0016 |                 6 |  0.96    | False             |
-| 100 |       50 | MJ shoulder |       0.0157 |                15 |  0.00023 | True              |
-| 100 |       50 | MJ elbow    |      -0.0203 |                 3 |  0.0027  | False             |
-| 100 |      100 | SJ elbow    |       0.0867 |                17 |  0.00018 | True              |
-| 100 |      100 | MJ shoulder |       0.0889 |                17 |  0.00018 | True              |
-| 100 |      100 | MJ elbow    |       0.0716 |                17 |  0.00018 | True              |
-| 100 |      150 | SJ elbow    |       0.1979 |                17 |  0.00018 | True              |
-| 100 |      150 | MJ shoulder |       0.2023 |                17 |  0.00018 | True              |
-| 100 |      150 | MJ elbow    |       0.2003 |                17 |  0.00018 | True              |
-| 200 |        0 | SJ elbow    |      -0.0238 |                 0 |  0.00018 | False             |
-| 200 |        0 | MJ shoulder |      -0.0172 |                 0 |  0.00018 | False             |
-| 200 |        0 | MJ elbow    |      -0.0287 |                 0 |  0.00018 | False             |
-| 200 |       50 | SJ elbow    |      -0.0195 |                 0 |  0.00018 | False             |
-| 200 |       50 | MJ shoulder |      -0.0051 |                 7 |  0.35    | False             |
-| 200 |       50 | MJ elbow    |      -0.0344 |                 0 |  0.00018 | False             |
-| 200 |      100 | SJ elbow    |       0.0583 |                17 |  0.00018 | True              |
-| 200 |      100 | MJ shoulder |       0.0584 |                17 |  0.00018 | True              |
-| 200 |      100 | MJ elbow    |       0.0448 |                16 |  0.00021 | True              |
-| 200 |      150 | SJ elbow    |       0.1602 |                17 |  0.00018 | True              |
-| 200 |      150 | MJ shoulder |       0.1605 |                17 |  0.00018 | True              |
-| 200 |      150 | MJ elbow    |       0.1604 |                17 |  0.00018 | True              |
+|  50 |        0 | SJ elbow    |      -0.0158 |                 0 |  0.00018 | no                |
+|  50 |        0 | MJ shoulder |      -0.006  |                 1 |  0.00021 | no                |
+|  50 |        0 | MJ elbow    |      -0.0211 |                 0 |  0.00018 | no                |
+|  50 |       50 | SJ elbow    |       0.0166 |                16 |  0.00018 | yes               |
+|  50 |       50 | MJ shoulder |       0.0276 |                17 |  0.00018 | yes               |
+|  50 |       50 | MJ elbow    |      -0.0079 |                 7 |  0.17    | no                |
+|  50 |      100 | SJ elbow    |       0.1034 |                17 |  0.00018 | yes               |
+|  50 |      100 | MJ shoulder |       0.1061 |                17 |  0.00018 | yes               |
+|  50 |      100 | MJ elbow    |       0.0908 |                17 |  0.00018 | yes               |
+|  50 |      150 | SJ elbow    |       0.2167 |                17 |  0.00018 | yes               |
+|  50 |      150 | MJ shoulder |       0.2168 |                17 |  0.00018 | yes               |
+|  50 |      150 | MJ elbow    |       0.2173 |                17 |  0.00018 | yes               |
+| 100 |        0 | SJ elbow    |      -0.0211 |                 0 |  0.00018 | no                |
+| 100 |        0 | MJ shoulder |      -0.0115 |                 0 |  0.00018 | no                |
+| 100 |        0 | MJ elbow    |      -0.0248 |                 0 |  0.00018 | no                |
+| 100 |       50 | SJ elbow    |      -0.0016 |                 6 |  0.96    | no                |
+| 100 |       50 | MJ shoulder |       0.0157 |                15 |  0.00023 | yes               |
+| 100 |       50 | MJ elbow    |      -0.0203 |                 3 |  0.0027  | no                |
+| 100 |      100 | SJ elbow    |       0.0867 |                17 |  0.00018 | yes               |
+| 100 |      100 | MJ shoulder |       0.0889 |                17 |  0.00018 | yes               |
+| 100 |      100 | MJ elbow    |       0.0716 |                17 |  0.00018 | yes               |
+| 100 |      150 | SJ elbow    |       0.1979 |                17 |  0.00018 | yes               |
+| 100 |      150 | MJ shoulder |       0.2023 |                17 |  0.00018 | yes               |
+| 100 |      150 | MJ elbow    |       0.2003 |                17 |  0.00018 | yes               |
+| 200 |        0 | SJ elbow    |      -0.0238 |                 0 |  0.00018 | no                |
+| 200 |        0 | MJ shoulder |      -0.0172 |                 0 |  0.00018 | no                |
+| 200 |        0 | MJ elbow    |      -0.0287 |                 0 |  0.00018 | no                |
+| 200 |       50 | SJ elbow    |      -0.0195 |                 0 |  0.00018 | no                |
+| 200 |       50 | MJ shoulder |      -0.0051 |                 7 |  0.35    | no                |
+| 200 |       50 | MJ elbow    |      -0.0344 |                 0 |  0.00018 | no                |
+| 200 |      100 | SJ elbow    |       0.0583 |                17 |  0.00018 | yes               |
+| 200 |      100 | MJ shoulder |       0.0584 |                17 |  0.00018 | yes               |
+| 200 |      100 | MJ elbow    |       0.0448 |                16 |  0.00021 | yes               |
+| 200 |      150 | SJ elbow    |       0.1602 |                17 |  0.00018 | yes               |
+| 200 |      150 | MJ shoulder |       0.1605 |                17 |  0.00018 | yes               |
+| 200 |      150 | MJ elbow    |       0.1604 |                17 |  0.00018 | yes               |
 
 **Table S6.6.** Late fusion of the kinematics-only ridge and the EMG-only TCN for q̇(t + 100 ms) at every tested delay: median R² of the kinematics-only model; median paired gain for W = 25, 50 and 200 ms (seed 0), for a second seed (W = 25 and 200 ms), for TCNs trained on EMG circularly shifted by 5 s (W = 25 and 200 ms; in the paired tests, the W = 50 ms arm was compared with the 25-ms control and the second-seed arms with the seed-0 controls), with the weight selected on the test trials (oracle upper bound, W = 25 ms), and with a kinematics-only TCN instead of the EMG-only TCN (ensemble control; d = 100 and 150 ms only; trained like the EMG models with input-noise augmentation σ = 0.1, or without it); and the EMG weight selected on the validation trials (W = 25 ms; per participant, averaged over folds; median over participants).
 

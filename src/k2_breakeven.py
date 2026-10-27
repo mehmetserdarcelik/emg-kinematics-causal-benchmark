@@ -3,6 +3,9 @@
 qd(t + 100 ms); kinematics: k_checks_sweep 'kin' (d = 0-160 ms). EMG-only: TCN (wsweep_all) and ridge
 (k_checks_sweep 'emg_only'), all windows. Participant-level bootstrap (10 000); d* = inf without a crossing within
 160 ms. Confidence intervals INCLUDE the inf values (unconditional percentiles). Output: results/k_checks/K2_breakeven_v2.csv
+Additionally, "EMG-TCN, common samples": the late-fusion kinematics-only ridge and EMG-only TCNs (W = 25, 50,
+200 ms; seed 0), evaluated on the same samples (t >= d) at every delay (results/latefusion/S*.csv); used in the
+main text and Fig. 4c.
 """
 import glob
 from pathlib import Path
@@ -18,10 +21,11 @@ rng = np.random.default_rng(0)
 
 
 def crossing(delays, kin_med, emg_med):
+    """emg_med: scalar or one value per delay; zero crossing of kin - emg (linear interpolation)."""
+    g = np.asarray(kin_med, float) - np.broadcast_to(emg_med, np.shape(kin_med))
     for i in range(1, len(delays)):
-        if kin_med[i] <= emg_med:
-            a, b = kin_med[i - 1], kin_med[i]
-            return delays[i - 1] + (a - emg_med) / (a - b) * (delays[i] - delays[i - 1])
+        if g[i] <= 0:
+            return delays[i - 1] + g[i - 1] / (g[i - 1] - g[i]) * (delays[i] - delays[i - 1])
     return np.inf
 
 
@@ -54,6 +58,23 @@ def main(n_boot=10000):
                 rows.append(dict(condition=c, joint=j, W=W, emg_model=name, n=len(subj), emg_r2=np.median(E),
                                  d_star=d, ci_lo=pct(bs, 2.5), ci_hi=pct(bs, 97.5),
                                  frac_beyond_160=np.mean(~np.isfinite(bs))))
+    # common samples: kinematics-only and EMG-only scores of the late-fusion files on the same samples t >= d
+    lf = pd.concat([pd.read_csv(p) for p in sorted(glob.glob(str(R / "latefusion" / "S[0-9]*.csv")))])
+    for c, j in J3:
+        x = lf[(lf.condition == c) & (lf.joint == j)]
+        kin = x[x.arm == "kin"].pivot_table(index="subject", columns="delay_ms", values="r2")
+        delays = kin.columns.values.astype(float)
+        for W in (25, 50, 200):
+            emg = x[x.arm == f"emg_w{W}"].pivot_table(index="subject", columns="delay_ms", values="r2")[kin.columns]
+            K, E = kin.values, emg.loc[kin.index].values
+            d = crossing(delays, np.median(K, 0), np.median(E, 0))
+            bs = np.empty(n_boot)
+            for b in range(n_boot):
+                i = rng.integers(0, len(K), len(K))
+                bs[b] = crossing(delays, np.median(K[i], 0), np.median(E[i], 0))
+            rows.append(dict(condition=c, joint=j, W=W, emg_model="EMG-TCN, common samples", n=len(K),
+                             emg_r2=np.median(E[:, list(delays).index(150)]), d_star=d, ci_lo=pct(bs, 2.5),
+                             ci_hi=pct(bs, 97.5), frac_beyond_160=np.mean(~np.isfinite(bs))))
     out = pd.DataFrame(rows)
     out.to_csv(R / "k_checks" / "K2_breakeven_v2.csv", index=False)
     return out

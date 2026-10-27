@@ -241,7 +241,7 @@ def fig4():
     BW = (25, 50, 200)
     for i, ((c, j), lab, col) in enumerate(J3):
         for k, W in enumerate(BW):
-            r = br[(br.condition == c) & (br.joint == j) & (br.W == W) & (br.emg_model == "EMG-TCN")].iloc[0]
+            r = br[(br.condition == c) & (br.joint == j) & (br.W == W) & (br.emg_model == "EMG-TCN, common samples")].iloc[0]
             y = i * 3.5 + k
             al = 0.45 if W == 200 else 0.9
             lo = r.ci_lo if np.isfinite(r.ci_lo) else 160

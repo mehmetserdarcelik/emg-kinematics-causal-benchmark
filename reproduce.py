@@ -44,6 +44,8 @@ CPU_HEAVY = [  # need data/ and the full prediction files of run_v2
 SUMMARY = [  # CPU, from the per-participant results in results/
     ["src/run_v2.py", "summary"],
     ["src/latefusion.py", "summary"],
+    ["src/causal_kin_check.py", "summary"],
+    ["src/window_dropout_check.py", "summary"],
     ["src/aggregate.py"],
     ["src/stats.py"],
     ["src/k_analysis.py"],
