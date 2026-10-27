@@ -71,7 +71,7 @@ Code: MIT. Derived results (`results/`, `paper/`): CC BY-SA 4.0, the licence of 
 
 If you use this code, please cite the paper (details will be added on publication), this archive and the dataset:
 
-M. S. Çelik, *Code and derived results: When does surface EMG add value for decoding joint kinematics?*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23590654 (all versions; the version used for the paper is v1.1.0)
+M. S. Çelik, *Code and derived results: When does surface EMG add value for decoding joint kinematics?*, Zenodo, 2026. https://doi.org/10.5281/zenodo.23590654 (all versions). The version used for the paper is v1.1.0: https://doi.org/10.5281/zenodo.23690468
 
 
 L. Quesada, D. Verdel, O. Bruneau, B. Berret, M.-A. Amorim, N. Vignais, *A dataset for the investigation of upper limb torque prediction from EMG signals*, Zenodo, 2024. https://doi.org/10.5281/zenodo.11209324
